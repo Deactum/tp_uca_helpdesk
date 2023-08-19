@@ -1,0 +1,23 @@
+﻿$PBExportHeader$f_grabar.srf
+$PBExportComments$Graba una datawindow simple
+global type f_grabar from function_object
+end type
+
+forward prototypes
+global subroutine f_grabar (ref datawindow dw_datos)
+end prototypes
+
+global subroutine f_grabar (ref datawindow dw_datos);//graba una datawindow
+dw_datos.accepttext()
+if dw_datos.update(true,false) = 1 then
+	commit using sqlca;
+	dw_datos.resetupdate()
+else
+	rollback using sqlca;
+	MessageBox("Error de grabacion", + &
+				"La aplicación a encontrado un error",Stopsign!)
+	dw_datos.rowsmove(1,1,delete!,dw_datos,1,primary!)
+	dw_datos.setrow(1)
+end if
+end subroutine
+
