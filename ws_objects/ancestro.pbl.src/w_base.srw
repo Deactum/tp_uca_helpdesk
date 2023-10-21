@@ -13,7 +13,11 @@ end forward
 
 global type w_base from window
 integer width = 4745
-integer height = 1900
+integer height = 1972
+boolean titlebar = true
+boolean controlmenu = true
+boolean minbox = true
+boolean maxbox = true
 windowtype windowtype = child!
 windowstate windowstate = maximized!
 long backcolor = 67108864

@@ -10,7 +10,7 @@ end type
 end forward
 
 global type uo_menu from userobject
-integer width = 1193
+integer width = 887
 integer height = 2472
 long backcolor = 134217730
 string text = "none"
@@ -47,10 +47,9 @@ end event
 
 type lv_menu from listview within uo_menu
 integer y = 184
-integer width = 1189
+integer width = 882
 integer height = 1372
 integer taborder = 10
-integer transparency = 50
 integer textsize = -12
 integer weight = 400
 fontcharset fontcharset = ansi!

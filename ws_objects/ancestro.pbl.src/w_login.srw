@@ -48,6 +48,7 @@ global w_login w_login
 type variables
 long il_return = -1
 end variables
+
 on w_login.create
 this.p_pass=create p_pass
 this.p_user=create p_user

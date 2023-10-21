@@ -13,10 +13,11 @@ end forward
 global variables
 
 end variables
+
 global type helpdesk from application
 string appname = "helpdesk"
-string themepath = "C:\Program Files (x86)\Appeon\PowerBuilder 19.0\IDE\theme"
-string themename = "Do Not Use Themes"
+string themepath = ".\theme190"
+string themename = "Flat Design Blue"
 boolean nativepdfvalid = false
 boolean nativepdfincludecustomfont = false
 string nativepdfappname = ""

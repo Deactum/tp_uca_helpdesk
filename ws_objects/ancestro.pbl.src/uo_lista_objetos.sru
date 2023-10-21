@@ -23,8 +23,6 @@ il_row +=1
 is_objetos[il_row,1] = as_titulo
 is_objetos[il_row,2] = as_objeto
 is_objetos[il_row,3] = as_icono
-
-
 return 1
 end function
 

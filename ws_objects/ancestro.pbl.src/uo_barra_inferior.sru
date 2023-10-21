@@ -64,7 +64,7 @@ end type
 type st_1 from statictext within uo_barra_inferior
 integer x = 1952
 integer y = 8
-integer width = 224
+integer width = 256
 integer height = 64
 integer textsize = -10
 integer weight = 400
@@ -74,7 +74,7 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
 long backcolor = 67108864
-string text = "Objeto:"
+string text = "| Objeto:"
 boolean focusrectangle = false
 end type
 
