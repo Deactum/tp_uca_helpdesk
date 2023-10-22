@@ -47,12 +47,12 @@
 			"hover-state":
 			{
 				"background-color":"#194d80",
-				"text-font":{"color":"#000000"}
+				"text-font":{"color":"#FFFFFF"}
 			},
 			"selected-state":
 			{
 				"background-color":"#2266aa",
-				"text-font":{"color":"#000000"}
+				"text-font":{"color":"#FFFFFF"}
 			},
 			"disabled-state": 
 			{
@@ -72,35 +72,57 @@
 			}
 		}
 	},
-	"uo_barra_titulo":
+	"uo_menu.lv_colapsado":
 	{
 		"drawing":true,
-		"default-style":true,
 		"normal-state":
 		{
-			"background-color":"#113355",
-			"border-color":"#113355"
+			"border-color":"#CCCCCC",
+			"background-color":"#113355"
+		},
+		"hover-state": 
+		{
+			"border-color":"#CCCCCC",
+			"background-color":"#113355"
 		},
 		"disabled-state":
 		{
-			"background-color":"#FFFFFF",
-			"border-color":"#CCCCCC"
-		}
-	},
-	"uo_barra_titulo.st_1":
-	{
-		"drawing":true,
-		"border":0,
-		"background-transparent":true,
-		"normal-state":
-		{
-			"background-color":"#FFFFFF",
-			"text-font":{"color":"#FFFFFF"}
+			"border-color":"#CCCCCC",
+			"background-color":"#FFFFFF"
 		},
-		"disabled-state":
+		"item":
 		{
-			"background-color":"#FFFFFF",
-			"text-font":{"color":"#999999"}
+			"normal-state":
+			{
+				"background-color":"#113355",
+				"text-font":{"color":"#FFFFFF"}
+			},
+			"hover-state":
+			{
+				"background-color":"#194d80",
+				"text-font":{"color":"#FFFFFF"}
+			},
+			"selected-state":
+			{
+				"background-color":"#2266aa",
+				"text-font":{"color":"#FFFFFF"}
+			},
+			"disabled-state": 
+			{
+				"background-color":"#FFFFFF",
+				"text-font":{"color":"#999999"}
+			}
+		},
+		"checkbox":
+		{
+			"normal-state":
+			{
+				"images":
+				{
+					"unchecked":{"file":"listview-checkbox-unchecked.ico"},
+					"checked":{"file":"listview-checkbox-checked.ico"}
+				}
+			}
 		}
 	}
 }

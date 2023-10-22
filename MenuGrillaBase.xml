@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<RibbonBar BuiltinTheme="0" Font="FaceName:Tahoma; FontCharSet:ansi!; TextSize:10">
+  <RibbonItems>
+    <Categories>
+      <Category Text="Principal" Enabled="true" Tag="Home" Visible="true">
+        <Panel Text="" PictureName="BoardSmall!" Enabled="true" Tag="Acciones">
+          <LargeButton Text="" Enabled="true" Tag="" Visible="true" PictureName="AddBig!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="" Selected="" Shortcut="">
+          </LargeButton>
+          <LargeButton Text="" Enabled="true" Tag="" Visible="true" PictureName="RefreshBig!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="" Selected="" Shortcut="">
+          </LargeButton>
+          <Group>
+            <SmallButton Text="" Enabled="true" Tag="" Visible="true" PictureName="NavFirstBig!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="" Selected="" Shortcut="">
+            </SmallButton>
+            <SmallButton Text="" Enabled="true" Tag="" Visible="true" PictureName="NavPrevsmall!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="" Selected="" Shortcut="">
+            </SmallButton>
+            <SmallButton Text="" Enabled="true" Tag="" Visible="true" PictureName="NavNextSmall!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="" Selected="" Shortcut="">
+            </SmallButton>
+            <SmallButton Text="" Enabled="true" Tag="" Visible="true" PictureName="NavLastSmall!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="" Selected="" Shortcut="">
+            </SmallButton>
+            <SmallButton Text="Salir" Enabled="true" Tag="" Visible="true" PictureName="CloseSmall!" DefaultCommand="true" Checked="false" PowerTipText="" PowerTipDescription="" Clicked="ButtonSalirClicked" Selected="" Shortcut="">
+            </SmallButton>
+          </Group>
+        </Panel>
+      </Category>
+    </Categories>
+    <TabButtons>
+      <TabButton Text="Minimize" PictureName="ArrowUpSmall!" Checked="false" DefaultCommand="true" Enabled="true" PowerTipText="Minimize" PowerTipDescription="Minimize or maximize RibbonBar." Shortcut="Ctrl+Shift+M" Tag="TabMinimize" Visible="true" Clicked="ue_TabButtonMinimizeClicked" Selected="ue_TabButtonMinimizeSelected"/>
+      <TabButton Text="Help" PictureName="HelpSmall!" Checked="false" DefaultCommand="true" Enabled="true" PowerTipText="Help" PowerTipDescription="Get help." Tag="TabHelp" Visible="true" Clicked="ue_TabButtonHelpClicked" Selected="ue_TabButtonHelpSelected"/>
+    </TabButtons>
+  </RibbonItems>
+</RibbonBar>
