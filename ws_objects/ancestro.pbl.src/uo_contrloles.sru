@@ -95,7 +95,7 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
-string picturename = "D:\Archivos\trabajo practico\dev\iconos\png\plus.png"
+string picturename = ".\iconos\png\plus.png"
 alignment htextalign = left!
 end type
 
