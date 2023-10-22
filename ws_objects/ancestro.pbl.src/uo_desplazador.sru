@@ -74,7 +74,7 @@ integer x = 544
 integer y = 32
 integer width = 155
 integer height = 132
-string picturename = "D:\Archivos\trabajo practico\dev\iconos\1x\baseline_last_page_black_48dp.png"
+string picturename = ".\iconos\1x\baseline_last_page_black_48dp.png"
 borderstyle borderstyle = styleraised!
 end type
 
@@ -86,7 +86,7 @@ integer x = 27
 integer y = 32
 integer width = 155
 integer height = 132
-string picturename = "D:\Archivos\trabajo practico\dev\iconos\1x\baseline_first_page_black_48dp.png"
+string picturename = ".\iconos\1x\baseline_first_page_black_48dp.png"
 borderstyle borderstyle = styleraised!
 end type
 
