@@ -42,6 +42,7 @@ private string is_busqueda = '%%'
 string is_titulo 
 string is_alta, is_baja, is_modificacion 
 end variables
+
 forward prototypes
 public function long get_pagina ()
 public subroutine set_pagina (long al_pagina)
@@ -142,11 +143,11 @@ set_total_registros(li_val)
 
 end subroutine
 
-public subroutine of_desplazar ();long ll_paginas 
-long ll_i
-ll_paginas =  round(get_total_registros() / get_registros(),0)
-uo_desp.em_1.minmax = '1~~' +string(ll_paginas)
-uo_desp.em_1.text = string(get_pagina()+1)
+public subroutine of_desplazar ();//long ll_paginas 
+//long ll_i
+//ll_paginas =  round(get_total_registros() / get_registros(),0)
+//uo_desp.em_1.minmax = '1~~' +string(ll_paginas)
+//uo_desp.em_1.text = string(get_pagina()+1)
 end subroutine
 
 public subroutine of_salir ();parent.triggerevent('ue_cerrar_tab')
@@ -203,7 +204,6 @@ end event
 type uo_desp from uo_desplazador within uo_grilla_base
 integer x = 2862
 integer y = 1816
-integer height = 196
 integer taborder = 20
 end type
 
@@ -213,18 +213,29 @@ end on
 
 event ue_siguiente;call super::ue_siguiente;if get_pagina() = round(get_total_registros() /get_registros(),0) then return
 set_pagina(get_pagina()+1)
-this.em_1.text = string(get_pagina()+1)
+this.st_1.text =  string(get_pagina()+1)
 uo_control.event ue_actualizar( )
 end event
 
 event ue_anterior;call super::ue_anterior;if get_pagina() = 0 then return
 set_pagina(get_pagina()-1)
-this.em_1.text = string(get_pagina()+1)
+this.st_1.text = string(get_pagina()+1)
 uo_control.event ue_actualizar( )
 end event
 
+event ue_ir_clicked;call super::ue_ir_clicked;double ll_ret
+openwithparm(w_ir_a_pagina, round(get_total_registros() /get_registros(),0))
+ll_ret = message.doubleparm
+if not isnull(ll_ret) and not ll_ret = 0 then
+	set_pagina(ll_ret -1)
+	uo_control.event ue_actualizar( )
+	this.st_1.text = string(get_pagina()+1)
+end if
+
+end event
+
 type uo_control from uo_contrloles within uo_grilla_base
-integer x = 2994
+integer x = 2834
 integer y = 136
 integer height = 172
 integer taborder = 30
@@ -237,7 +248,7 @@ end on
 event ue_actualizar;call super::ue_actualizar;string ls_busquda
 dw_datos.retrieve(get_pagina(), get_registros(), get_busqueda())
 of_mensaje_paginacion()
-of_desplazar()
+
 end event
 
 event ue_salir;call super::ue_salir;of_salir()

@@ -2,7 +2,7 @@
 forward
 global type uo_desplazador from userobject
 end type
-type em_1 from editmask within uo_desplazador
+type st_1 from statictext within uo_desplazador
 end type
 type p_siguiente from picture within uo_desplazador
 end type
@@ -13,15 +13,16 @@ end type
 end forward
 
 global type uo_desplazador from userobject
-integer width = 731
-integer height = 212
+integer width = 722
+integer height = 196
 long backcolor = 67108864
 string text = "none"
 long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
 event ue_anterior ( )
 event ue_siguiente ( )
-em_1 em_1
+event ue_ir_clicked ( )
+st_1 st_1
 p_siguiente p_siguiente
 p_anterior p_anterior
 rr_1 rr_1
@@ -29,29 +30,28 @@ end type
 global uo_desplazador uo_desplazador
 
 on uo_desplazador.create
-this.em_1=create em_1
+this.st_1=create st_1
 this.p_siguiente=create p_siguiente
 this.p_anterior=create p_anterior
 this.rr_1=create rr_1
-this.Control[]={this.em_1,&
+this.Control[]={this.st_1,&
 this.p_siguiente,&
 this.p_anterior,&
 this.rr_1}
 end on
 
 on uo_desplazador.destroy
-destroy(this.em_1)
+destroy(this.st_1)
 destroy(this.p_siguiente)
 destroy(this.p_anterior)
 destroy(this.rr_1)
 end on
 
-type em_1 from editmask within uo_desplazador
-integer x = 206
-integer y = 40
-integer width = 311
-integer height = 112
-integer taborder = 10
+type st_1 from statictext within uo_desplazador
+integer x = 192
+integer y = 64
+integer width = 343
+integer height = 64
 integer textsize = -10
 integer weight = 400
 fontcharset fontcharset = ansi!
@@ -59,13 +59,15 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
-string text = "none"
+long backcolor = 67108864
+string text = "1"
 alignment alignment = center!
-borderstyle borderstyle = stylelowered!
-string mask = "#"
-boolean spin = true
-double increment = 1
+borderstyle borderstyle = styleraised!
+boolean focusrectangle = false
 end type
+
+event clicked;parent.event ue_ir_clicked()
+end event
 
 type p_siguiente from picture within uo_desplazador
 integer x = 544
