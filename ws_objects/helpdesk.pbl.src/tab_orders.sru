@@ -6,6 +6,7 @@ end forward
 
 global type tab_orders from uo_grilla_base
 string is_titulo = "Orders"
+string is_modificacion = "w_abm_orders"
 end type
 global tab_orders tab_orders
 
@@ -17,6 +18,9 @@ end on
 on tab_orders.destroy
 call super::destroy
 end on
+
+type uo_desp from uo_grilla_base`uo_desp within tab_orders
+end type
 
 type uo_control from uo_grilla_base`uo_control within tab_orders
 end type

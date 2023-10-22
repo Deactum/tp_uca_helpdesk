@@ -296,6 +296,10 @@ boolean hscrollbar = true
 boolean vscrollbar = true
 end type
 
+event doubleclicked;call super::doubleclicked;window w_to_open
+openwithparm(w_to_open,this.getitemnumber(row,1),is_modificacion)
+end event
+
 type st_titulo from statictext within uo_grilla_base
 integer width = 2158
 integer height = 148
