@@ -6,7 +6,7 @@ type cb_2 from btn_cancelar within w_abm_base
 end type
 type cb_1 from btn_aceptar within w_abm_base
 end type
-type dw_1 from dw_abm within w_abm_base
+type dw_datos from dw_abm within w_abm_base
 end type
 end forward
 
@@ -19,7 +19,7 @@ windowtype windowtype = response!
 windowstate windowstate = normal!
 cb_2 cb_2
 cb_1 cb_1
-dw_1 dw_1
+dw_datos dw_datos
 end type
 global w_abm_base w_abm_base
 
@@ -28,35 +28,52 @@ int iCurrent
 call super::create
 this.cb_2=create cb_2
 this.cb_1=create cb_1
-this.dw_1=create dw_1
+this.dw_datos=create dw_datos
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.cb_2
 this.Control[iCurrent+2]=this.cb_1
-this.Control[iCurrent+3]=this.dw_1
+this.Control[iCurrent+3]=this.dw_datos
 end on
 
 on w_abm_base.destroy
 call super::destroy
 destroy(this.cb_2)
 destroy(this.cb_1)
-destroy(this.dw_1)
+destroy(this.dw_datos)
 end on
 
+event open;call super::open;long ll_codigo
+string ls_codigo
+ls_codigo = message.stringparm
+ll_codigo = long(ls_codigo)
+if ll_codigo >0 then 
+	dw_datos.retrieve( ll_codigo)
+elseif len(ls_codigo) > 0 then 
+	dw_datos.retrieve(ls_codigo)
+end if
+end event
+
 type cb_2 from btn_cancelar within w_abm_base
-integer x = 1367
-integer y = 636
-integer taborder = 30
+integer x = 1426
+integer y = 756
+integer taborder = 1
 end type
 
 type cb_1 from btn_aceptar within w_abm_base
-integer x = 1765
-integer y = 636
-integer taborder = 20
+integer x = 1824
+integer y = 756
+integer taborder = 3
 end type
 
-type dw_1 from dw_abm within w_abm_base
+event clicked;call super::clicked;if f_validacion(dw_datos) = 1 then return 
+if f_grabar(dw_datos) >0 then cb_2.event clicked( )
+end event
+
+type dw_datos from dw_abm within w_abm_base
 integer y = 44
-integer taborder = 10
+integer width = 2203
+integer height = 688
+integer taborder = 2
 boolean border = false
 end type
 

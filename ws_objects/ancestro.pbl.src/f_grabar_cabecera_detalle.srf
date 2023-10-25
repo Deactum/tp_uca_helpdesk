@@ -1,0 +1,35 @@
+﻿$PBExportHeader$f_grabar_cabecera_detalle.srf
+global type f_grabar_cabecera_detalle from function_object
+end type
+
+forward prototypes
+global function long f_grabar_cabecera_detalle (ref datawindow adw_cab, ref datawindow adw_det)
+end prototypes
+
+global function long f_grabar_cabecera_detalle (ref datawindow adw_cab, ref datawindow adw_det);long ll_ret
+adw_cab.accepttext()
+if adw_cab.update(true,false) = 1 then
+	if adw_det.update(true,false) = 1 then
+		commit using sqlca;
+		adw_cab.resetupdate()
+		ll_ret = 1
+	else
+		rollback using sqlca;
+		MessageBox("Error de grabacion - detalle", + &
+				"La aplicación a encontrado un error",Stopsign!)
+		adw_cab.rowsmove(1,1,delete!,adw_cab,1,primary!)
+		adw_cab.setrow(1)
+		ll_ret = -1 
+	end if
+else
+	 rollback using sqlca;
+	MessageBox("Error de grabacion - cabecera", + &
+				"La aplicación a encontrado un error",Stopsign!)
+	adw_cab.rowsmove(1,1,delete!,adw_cab,1,primary!)
+	adw_cab.setrow(1)
+	ll_ret = -1
+end if
+
+return ll_ret
+end function
+

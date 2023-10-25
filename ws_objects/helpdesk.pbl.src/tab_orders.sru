@@ -6,7 +6,7 @@ end forward
 
 global type tab_orders from uo_grilla_base
 string is_titulo = "Orders"
-string is_modificacion = "w_abm_orders"
+string is_abm = "w_abm_orders"
 end type
 global tab_orders tab_orders
 

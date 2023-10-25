@@ -11,9 +11,8 @@ global message message
 end forward
 
 global variables
-
+powerobject g_object
 end variables
-
 global type helpdesk from application
 string appname = "helpdesk"
 string themepath = ".\theme190"

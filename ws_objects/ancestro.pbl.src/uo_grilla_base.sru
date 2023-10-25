@@ -25,6 +25,9 @@ long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
 event ue_size pbm_size
 event ue_init ( )
+event ue_actualizar ( )
+event ue_editar ( )
+event ue_nuevo ( )
 uo_desp uo_desp
 uo_control uo_control
 st_pagina st_pagina
@@ -40,7 +43,7 @@ private long il_registros = 100
 private long il_total_registros = 1000
 private string is_busqueda = '%%'
 string is_titulo 
-string is_alta, is_baja, is_modificacion 
+string is_abm //, is_baja, is_modificacion 
 end variables
 
 forward prototypes
@@ -73,6 +76,15 @@ this.text = is_titulo
 of_contar_registros()
 uo_control.event ue_actualizar( )
 
+end event
+
+event ue_actualizar();uo_control.event ue_actualizar( )
+end event
+
+event ue_editar();uo_control.event ue_editar( )
+end event
+
+event ue_nuevo();uo_control.event ue_nuevo( )
 end event
 
 public function long get_pagina ();return il_pagina
@@ -254,6 +266,29 @@ end event
 event ue_salir;call super::ue_salir;of_salir()
 end event
 
+event ue_editar;call super::ue_editar;any la_codigo
+window w_to_open
+try 
+	openwithparm(w_to_open,string(f_datatype(dw_datos,1)),is_abm)
+	this.event ue_actualizar( )
+catch (runtimeerror e)
+	messagebox('Error',e.getmessage() )
+end try
+
+
+end event
+
+event ue_nuevo;call super::ue_nuevo;string ls_codigo
+window w_to_open
+try 
+	openwithparm(w_to_open,ls_codigo,is_abm)
+	this.event ue_actualizar( )
+catch (runtimeerror e)
+	messagebox('Error',e.getmessage() )
+end try
+
+end event
+
 type st_pagina from statictext within uo_grilla_base
 integer y = 1880
 integer width = 1417
@@ -296,8 +331,24 @@ boolean hscrollbar = true
 boolean vscrollbar = true
 end type
 
-event doubleclicked;call super::doubleclicked;window w_to_open
-openwithparm(w_to_open,this.getitemnumber(row,1),is_modificacion)
+event doubleclicked;call super::doubleclicked;uo_control.event ue_editar( )
+end event
+
+event rbuttondown;call super::rbuttondown;g_object = this.getparent()
+
+window ventana
+powerobject lpo_objeto
+m_menu_grilla menu
+menu = create m_menu_grilla
+if this.rowcount( ) = 0  then 
+	menu.m_principal.m_0.enabled = false
+	menu.m_principal.m_actualizar.enabled =false
+	menu.m_principal.m_editar.enabled = false
+end if
+lpo_objeto = this.getparent( )
+lpo_objeto = lpo_objeto.getParent()
+ventana =  lpo_objeto.getParent()
+menu.m_principal.popmenu(ventana.pointerx( ), ventana.pointery() )
 end event
 
 type st_titulo from statictext within uo_grilla_base

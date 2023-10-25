@@ -1,0 +1,27 @@
+﻿$PBExportHeader$f_nombre_tabla.srf
+global type f_nombre_tabla from function_object
+end type
+
+forward prototypes
+global function string f_nombre_tabla (ref datawindow dw_referencia)
+end prototypes
+
+global function string f_nombre_tabla (ref datawindow dw_referencia);string ls_syntax
+integer li_posini=0, li_posfin = 0
+string nombretabla
+
+if IsNull(dw_referencia) or not IsValid(dw_referencia) then
+ return ""
+end if
+ls_syntax = Lower (dw_referencia.Describe ("DataWindow.Syntax"))
+li_posini = Pos (ls_syntax, "dbname=", 1) + 8
+If li_posini > 0 Then 
+	li_posfin = Pos (ls_syntax, '.', li_posini)
+	if li_posfin > 0 Then
+	   nombretabla = Mid(ls_syntax,li_posini,li_posfin - li_posini)
+	End If
+End If
+return nombretabla
+
+end function
+

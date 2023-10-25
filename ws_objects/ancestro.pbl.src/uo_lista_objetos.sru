@@ -36,8 +36,9 @@ TriggerEvent( this, "destructor" )
 call super::destroy
 end on
 
-event constructor;of_set_objetos('Inicio                                    ','tab_inicio','.\iconos\1x\baseline_home_white_48dp.png')
+event constructor;of_set_objetos('Inicio                                    ','tab_inicio','.\iconos\1x\baseline_home_white_48dp.png') // no eliminar porque es el inicio 
 of_set_objetos('Orders','tab_orders','.\iconos\1x\outline_check_circle_white_48dp.png')
+of_set_objetos('Orders','tab_employees','.\iconos\1x\baseline_badge_white_48dp.png')
 
 end event
 

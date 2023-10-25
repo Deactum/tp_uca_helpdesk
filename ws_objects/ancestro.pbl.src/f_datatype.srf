@@ -1,0 +1,26 @@
+﻿$PBExportHeader$f_datatype.srf
+global type f_datatype from function_object
+end type
+
+forward prototypes
+global function any f_datatype (ref datawindow dw_ref, integer ai_column)
+end prototypes
+
+global function any f_datatype (ref datawindow dw_ref, integer ai_column);//retorna el valor con su tipo de dato 
+any dato
+string tipo
+tipo = dw_ref.describe("#"+string(ai_column)+".coltype")
+if tipo = "number" or  left(tipo,7)="integer" or left(tipo,4) ="long" then
+	dato = dw_ref.GetItemNumber(dw_ref.GetRow(),ai_column)
+elseif left(tipo,7)="decimal" then
+	dato = dw_ref.GetItemNumber(dw_ref.GetRow(),ai_column)
+elseif left(tipo,4)="char" then
+	dato = dw_ref.GetItemString(dw_ref.GetRow(),ai_column)
+elseif tipo ="date" then
+	dato = dw_ref.GetItemDate(dw_ref.GetRow(),ai_column)
+else
+	setnull(dato)
+end if
+return dato
+end function
+

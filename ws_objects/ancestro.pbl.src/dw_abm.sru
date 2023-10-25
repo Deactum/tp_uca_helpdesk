@@ -24,3 +24,6 @@ end on
 on dw_abm.destroy
 end on
 
+event dberror;messagebox('Error',sqlerrtext)
+end event
+

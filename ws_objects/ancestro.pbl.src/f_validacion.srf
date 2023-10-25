@@ -1,0 +1,45 @@
+﻿$PBExportHeader$f_validacion.srf
+global type f_validacion from function_object
+end type
+
+forward prototypes
+global function long f_validacion (ref datawindow dw_ref)
+end prototypes
+
+global function long f_validacion (ref datawindow dw_ref);//valida los campos de una dw 
+string ls_tabla, ls_column
+integer li, li_count
+long ll_row, ll_nulo, ll_ret = 0
+datastore lds_datos
+lds_datos =  create datastore 
+lds_datos.dataobject = 'dw_sys_columns'
+lds_datos.settransobject(sqlca)
+ls_tabla =  f_nombre_tabla(dw_ref)
+ll_row = lds_datos.retrieve(ls_tabla)
+dw_ref.AcceptText()
+li_count=integer(dw_ref.describe('datawindow.column.count'))
+
+for li=1 to li_count
+ls_column=dw_ref.describe('#' + string(li) + '.name')
+ll_row = lds_datos.find( 'nombre = ' +"'"+ls_column+"'" ,1,lds_datos.rowcount( ))
+if ll_row >0 then 
+	ll_nulo = lds_datos.getitemnumber(ll_row,3)
+	if ll_nulo = 0 then 
+		ll_nulo =  lds_datos.getitemnumber(ll_row,2)
+		if ll_nulo = 0 then 
+			if isnull(f_datatype(dw_ref, li)) then 
+				dw_ref.Modify(ls_column+".Background.Mode='0~tIf(getrow()=currentrow(),0,1)'")
+				dw_ref.Modify(ls_column+".Background.Color='0~tIf(isnull("+ls_column+"),RGB(255, 179, 179),rgb(255,255,255))'")
+				ll_ret = 1
+			end if
+		end if
+	end if
+end if
+next
+
+return ll_ret 
+
+
+
+end function
+

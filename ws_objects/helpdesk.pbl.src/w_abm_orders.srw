@@ -23,6 +23,6 @@ end type
 type cb_1 from w_abm_base`cb_1 within w_abm_orders
 end type
 
-type dw_1 from w_abm_base`dw_1 within w_abm_orders
+type dw_1 from w_abm_base`dw_datos within w_abm_orders
 end type
 
