@@ -49,37 +49,39 @@ public function string get_title (long al_index)
 end prototypes
 
 event ue_init();long ll_padre
-of_set_menu(0,'Inicio','tab_inicio','baseline_home_white_48dp.png')
-ll_padre = of_set_menu(0,'Reparaciones','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Clientes','tab_clientes','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Reparaciones','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Base de Conocimientos','baseline_wysiwyg_white_48dp.png')
-ll_padre = of_set_menu(0,'Depósito','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Ajustes','baseline_wysiwyg_white_48dp.png')
+of_set_menu(0,'Inicio','tab_inicio','baseline_home_white_48dp.png') 
+ll_padre = of_set_menu(0,'Reparaciones','baseline_construction_white_48dp.png') //nodo padre
+	of_set_menu(ll_padre,'Clientes','tab_clientes','baseline_person_white_48dp.png') //nodo hijo
+	of_set_menu(ll_padre,'Reparaciones','baseline_construction_white_48dp.png')
+	of_set_menu(ll_padre,'Base de Conocimientos','baseline_school_white_48dp.png')
+ll_padre = of_set_menu(0,'Depósito','baseline_inventory_white_48dp.png')
+	of_set_menu(ll_padre,'Ajustes','baseline_task_alt_white_48dp.png')
 	of_set_menu(ll_padre,'Componentes','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Compras','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Inventario','baseline_wysiwyg_white_48dp.png')
+	of_set_menu(ll_padre,'Compras','baseline_storefront_white_48dp.png')
+	of_set_menu(ll_padre,'Inventario','round_inventory_white_48dp.png')
 	of_set_menu(ll_padre,'Proveedores','baseline_wysiwyg_white_48dp.png')
-ll_padre = of_set_menu(0,'Administración','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Parámetros','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Usuarios','baseline_wysiwyg_white_48dp.png')
-ll_padre = of_set_menu(0,'Reportes','baseline_wysiwyg_white_48dp.png')
-	of_set_menu(ll_padre,'Tiempo promedio de Reparación','baseline_wysiwyg_white_48dp.png')
+ll_padre = of_set_menu(0,'Administración','baseline_admin_panel_settings_white_48dp.png')
+	of_set_menu(ll_padre,'Parámetros','baseline_tune_white_48dp.png')
+	of_set_menu(ll_padre,'Usuarios','baseline_manage_accounts_white_48dp.png')
+ll_padre = of_set_menu(0,'Reportes','baseline_analytics_white_48dp.png')
+	of_set_menu(ll_padre,'Tiempo promedio de Reparación','baseline_description_white_48dp.png')
 end event
 
 event ue_resize;
-tv_1.height =  this.height - tv_1.y -500
+tv_1.height =  this.height - tv_1.y -600
 p_2.y =  tv_1.height + tv_1.y
 end event
 
-public function string get_object (long al_index);long ll_find
+public function string get_object (long al_index);//retorna el nombre del objeto según el indice del treeview
+long ll_find
 string ls_objeto
 ll_find = ids_datos.find( 'nivel ='+string(al_index),1,ids_datos.rowcount( ))
 ls_objeto = ids_datos.getitemstring( ll_find,3)
 return ls_objeto
 end function
 
-public function long of_set_menu (long al_nivel, string as_titulo, string as_objeto, string as_icono);long ll_row, ll_ret, ll_imagen
+public function long of_set_menu (long al_nivel, string as_titulo, string as_objeto, string as_icono);//llena el treeview 
+long ll_row, ll_ret, ll_imagen
 constant string ls_path = '.\iconos\1x\'
 ll_imagen = tv_1.addpicture(ls_path+as_icono)
 ll_ret = tv_1.insertitemlast(al_nivel,as_titulo,ll_imagen)
@@ -91,11 +93,12 @@ ids_datos.setitem( ll_row,4,as_icono)
 return ll_ret
 end function
 
-public function long of_set_menu (long al_nivel, string as_titulo, string as_icono);
+public function long of_set_menu (long al_nivel, string as_titulo, string as_icono);//llena el treeview  sin nececidad de nombrar el objeto
 return of_set_menu(al_nivel,as_titulo,'',as_icono)
 end function
 
-public function string get_title (long al_index);long ll_find
+public function string get_title (long al_index);//retorna el titulo según el indice del treeview
+long ll_find
 string ls_titulo
 ll_find = ids_datos.find( 'nivel ='+string(al_index),1,ids_datos.rowcount( ))
 ls_titulo = ids_datos.getitemstring( ll_find,2)
@@ -137,7 +140,7 @@ integer y = 2156
 integer width = 219
 integer height = 192
 boolean originalsize = true
-string picturename = ".\iconos\1x\baseline_logout_white_48dp.png"
+string picturename = ".\iconos\1x\baseline_power_settings_new_white_48dp.png"
 end type
 
 event clicked;parent.event ue_clicked_logout( )
@@ -190,7 +193,7 @@ type p_1 from picture within uo_menu
 integer x = 270
 integer width = 389
 integer height = 360
-string picturename = ".\iconos\1x\baseline_person_white_48dp.png"
+string picturename = ".\iconos\2x\baseline_person_white_48dp.png"
 boolean focusrectangle = false
 end type
 

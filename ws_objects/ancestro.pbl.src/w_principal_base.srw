@@ -107,12 +107,15 @@ end on
 event resize;event ue_resize()
 end event
 
+event open;uo_2.event ue_clicked()
+end event
+
 type mdi_1 from mdiclient within w_principal_base
 long BackColor=268435456
 end type
 
 type uo_1 from uo_menu within w_principal_base
-integer height = 2208
+integer y = 204
 integer taborder = 30
 end type
 
@@ -169,13 +172,13 @@ end on
 event ue_clicked;call super::ue_clicked;if uo_1.ib_flag then 
 	uo_1.width= 0
 	uo_1.ib_flag = false
-	uo_2.x = 0
+	//uo_2.x = 0
 	uo_2.width = parent.width
 	tab_principal.x = 0
 else
 	uo_1.width = 923
 	uo_1.ib_flag = true
-	uo_2.x =  923
+	//uo_2.x =  923
 	uo_2.width = parent.width - 923
 	tab_principal.x = 923
 end if

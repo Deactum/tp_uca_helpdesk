@@ -2,6 +2,8 @@
 forward
 global type uo_barra_superior from userobject
 end type
+type st_1 from statictext within uo_barra_superior
+end type
 type p_1 from picture within uo_barra_superior
 end type
 end forward
@@ -14,20 +16,42 @@ string text = "none"
 long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
 event ue_clicked ( )
+st_1 st_1
 p_1 p_1
 end type
 global uo_barra_superior uo_barra_superior
 
 on uo_barra_superior.create
+this.st_1=create st_1
 this.p_1=create p_1
-this.Control[]={this.p_1}
+this.Control[]={this.st_1,&
+this.p_1}
 end on
 
 on uo_barra_superior.destroy
+destroy(this.st_1)
 destroy(this.p_1)
 end on
 
+type st_1 from statictext within uo_barra_superior
+integer y = 24
+integer width = 901
+integer height = 164
+integer textsize = -22
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Bahnschrift Condensed"
+long textcolor = 33554432
+long backcolor = 67108864
+string text = "Nippon America"
+alignment alignment = center!
+boolean focusrectangle = false
+end type
+
 type p_1 from picture within uo_barra_superior
+integer x = 887
 integer y = 4
 integer width = 219
 integer height = 192
