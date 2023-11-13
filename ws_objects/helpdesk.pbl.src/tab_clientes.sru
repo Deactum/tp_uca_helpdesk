@@ -6,7 +6,7 @@ end forward
 
 global type tab_clientes from uo_grilla_base
 string is_titulo = "Clientes"
-string is_abm = "dw_abm_clientes"
+string is_abm = "w_abm_clientes"
 end type
 global tab_clientes tab_clientes
 
