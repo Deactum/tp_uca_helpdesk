@@ -83,12 +83,7 @@ destroy(this.r_1)
 end on
 
 event open;r_1.fillcolor = rgb(17, 51, 85) 
-string ls_user, ls_pass
-string ls_inifile = "./conexion.ini"
-ls_user = ProfileString ( ls_inifile, "Database", "LogID", "")
-ls_pass = ProfileString ( ls_inifile, "Database", "LogPassword","")
-sle_1.text = ls_user
-sle_2.text = ls_pass
+
 end event
 
 event closequery;message.longparm = il_return
@@ -150,11 +145,21 @@ else
 	p_pass.visible = false
 end if
 
-sqlca.logid = ls_user
-sqlca.logpass = ls_pass
-il_return =1
+SELECT CASE
+				WHEN USUARIOS_CONTRASENA = :ls_pass THEN 0
+			ELSE 1
+			END AS OK_PASS
+INTO :il_return
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :ls_user
+COMMIT USING SQLCA;
+
+if il_return <> 0 then 
+	messagebox('Error de acceso', "Usuario o Password no son válidos, verifique si los ingresó correctamente e intente de nuevo. Si el error persiste consulte con administracion del sistema")
+	return
+end if 
+
 close(parent)
-//closewithreturn(parent,1)
 
 end event
 
