@@ -15,6 +15,10 @@ end forward
 global type w_abm_cyd_base from w_base
 integer width = 2222
 integer height = 2456
+boolean minbox = false
+boolean maxbox = false
+windowtype windowtype = response!
+windowstate windowstate = normal!
 cb_2 cb_2
 cb_1 cb_1
 dw_detalle dw_detalle
@@ -60,10 +64,16 @@ event clicked;call super::clicked;f_grabar_cabecera_detalle(dw_cabecera,dw_detal
 end event
 
 type dw_detalle from dw_list within w_abm_cyd_base
+event pbm_dwnkey pbm_dwnkey
 integer y = 592
 integer width = 2181
 integer taborder = 20
 end type
+
+event pbm_dwnkey;if key = KeyEnter! then
+	this.insertRow(this.RowCount())
+end if
+end event
 
 event constructor;call super::constructor;this.insertrow(0)
 end event
