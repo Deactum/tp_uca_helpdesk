@@ -9,7 +9,7 @@ type tv_1 from treeview within uo_menu
 end type
 type st_usuario from statictext within uo_menu
 end type
-type p_1 from picture within uo_menu
+type p_imagen from picture within uo_menu
 end type
 type ln_1 from line within uo_menu
 end type
@@ -29,7 +29,7 @@ event ue_clicked_logout ( )
 p_2 p_2
 tv_1 tv_1
 st_usuario st_usuario
-p_1 p_1
+p_imagen p_imagen
 ln_1 ln_1
 end type
 global uo_menu uo_menu
@@ -50,6 +50,7 @@ end prototypes
 
 event ue_init();long ll_padre
 string ls_nombre, ls_apellido
+blob lblob_imagen
 
 // obtiene informacion del usuario
 SELECT USUARIOS_NOMBRE, USUARIOS_APELLIDO
@@ -57,6 +58,16 @@ INTO :ls_nombre, :ls_apellido
 FROM USUARIOS
 WHERE USUARIOS_CODIGO = :gs_usu_codigo
 COMMIT USING SQLCA;
+
+// Obtiene imagen de usuario
+SELECTBLOB USUARIOS_FOTO
+INTO :lblob_imagen
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :gs_usu_codigo;
+COMMIT USING SQLCA;
+
+if isNull(lblob_imagen) then p_imagen.pictureName = '.\iconos\2x\baseline_person_white_48dp.png'
+p_imagen.setpicture(lblob_imagen)
 
 st_usuario.text = ls_apellido + ', ' + ls_nombre
 
@@ -121,12 +132,12 @@ on uo_menu.create
 this.p_2=create p_2
 this.tv_1=create tv_1
 this.st_usuario=create st_usuario
-this.p_1=create p_1
+this.p_imagen=create p_imagen
 this.ln_1=create ln_1
 this.Control[]={this.p_2,&
 this.tv_1,&
 this.st_usuario,&
-this.p_1,&
+this.p_imagen,&
 this.ln_1}
 end on
 
@@ -134,7 +145,7 @@ on uo_menu.destroy
 destroy(this.p_2)
 destroy(this.tv_1)
 destroy(this.st_usuario)
-destroy(this.p_1)
+destroy(this.p_imagen)
 destroy(this.ln_1)
 end on
 
@@ -202,7 +213,7 @@ boolean border = true
 boolean focusrectangle = false
 end type
 
-type p_1 from picture within uo_menu
+type p_imagen from picture within uo_menu
 integer x = 270
 integer width = 389
 integer height = 360
