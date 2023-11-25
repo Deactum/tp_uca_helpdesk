@@ -23,7 +23,7 @@ integer x = 745
 integer y = 472
 end type
 
-event cb_cancelar::clicked;call super::clicked;// Ancestro anulado
+event cb_cancelar::clicked;// Ancestro anulado
 CloseWithReturn(parent, -1)
 end event
 
@@ -32,7 +32,7 @@ integer x = 1143
 integer y = 472
 end type
 
-event cb_aceptar::clicked;call super::clicked;// Ancestro anulado
+event cb_aceptar::clicked;// Ancestro anulado
 if f_validacion(dw_datos) = 1 then return 
 if f_grabar(dw_datos) >0 then CloseWithReturn(parent, 0)
 
