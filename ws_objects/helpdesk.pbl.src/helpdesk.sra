@@ -12,6 +12,13 @@ end forward
 
 global variables
 powerobject g_object
+
+string gs_usu_codigo
+
+boolean gb_gerente
+boolean gb_encargado_tienda
+boolean gb_tecnico_supervisor
+boolean gb_tecnico
 end variables
 global type helpdesk from application
 string appname = "helpdesk"
@@ -51,25 +58,33 @@ destroy(message)
 end on
 
 event open;long l_ret 
+string ls_inifile = "./conexion.ini"
 
 //aplica el tema azul 
 applytheme('.\theme190\Flat Design Blue')
 
-//abre la ventana de inicio de sesión 
-openwithparm(w_login,0)
-l_ret = message.longparm
-if l_ret = 1 then 
-	n_connectservice lnv_connectserv
-	lnv_connectserv = Create using "n_connectservice"
+// se conecta a la base
+n_connectservice lnv_connectserv
+lnv_connectserv = Create using "n_connectservice"
+
+sqlca.logid = ProfileString ( ls_inifile, "Database", "LogID", "")
+sqlca.logpass = ProfileString ( ls_inifile, "Database", "LogPassword","")
+
+If lnv_connectserv.of_ConnectDB ( ) = 0 Then
 	
-	If lnv_connectserv.of_ConnectDB ( ) = 0 Then
+	//abre la ventana de inicio de sesión 
+	openwithparm(w_login,0)
+	
+	l_ret = message.longparm
+	
+	if l_ret = 0 then 
 		open(w_principal_base)
-	else
-		messagebox('','No Conectado...',stopsign!)
-	End if
-	
-	Destroy lnv_connectserv
-end if
+	end if 
+
+End if
+
+
+Destroy lnv_connectserv
 //--------------------------------------------------------------------------------------
 end event
 
