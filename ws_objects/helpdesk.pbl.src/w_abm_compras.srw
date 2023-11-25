@@ -13,6 +13,7 @@ global w_abm_compras w_abm_compras
 type variables
 long il_codigo
 end variables
+
 forward prototypes
 public function integer wf_refresh_proveedores (integer al_proveedor)
 public subroutine wf_get_codigo ()
@@ -130,7 +131,7 @@ for ll_counter = dw_detalle.RowCount() to 1 step -1
 next
 
 Destroy lds_componentes 
-if f_grabar_cabecera_detalle(dw_cabecera,dw_detalle) <> 1 then cb_2.event clicked()
+if f_grabar_cabecera_detalle(dw_cabecera,dw_detalle) <> -1 then cb_2.event clicked()
 
 end event
 
