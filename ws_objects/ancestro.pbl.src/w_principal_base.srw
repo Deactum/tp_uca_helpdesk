@@ -93,12 +93,21 @@ return false
 end function
 
 public subroutine wf_reciente (string as_titulo, string as_objeto);string ls_titulo
-long ll_upper
+long ll_upper, ll_i
+boolean lb_encontrado = false
 if not wf_buscar_tab(as_objeto) then
 	ls_titulo =  string(lv_1.totalitems( )+1) + ' - '+ as_titulo
-	lv_1.additem(ls_titulo,0)
-	ll_upper = upperbound(is_objetos)+1
-	is_objetos[ll_upper] = as_objeto
+	ll_upper = upperbound(is_objetos)
+	for ll_i = 1 to ll_upper
+		if is_objetos[ll_i] = as_objeto then
+			lb_encontrado = true
+			ll_i = ll_upper
+		end if
+	next
+	if not lb_encontrado then 
+		is_objetos[ll_upper+1] = as_objeto
+		lv_1.additem(ls_titulo,0)
+	end if
 end if
 end subroutine
 
