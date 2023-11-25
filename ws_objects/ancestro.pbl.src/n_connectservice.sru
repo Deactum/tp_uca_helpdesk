@@ -96,7 +96,7 @@ Choose Case is_connectfrom
 		as_database		= ""
 		as_userid		= ""
 		as_dbpass		= ""
-		as_logid			= "sa"
+		as_logid			= "dba"
 		as_logpass		= "123"
 		as_server		= "192.168.100.200"
 		as_dbparm		= "Database='bd_helpdesk'"
@@ -117,10 +117,19 @@ public function integer of_connectdb ();//*-------------------------------------
 //*  Make a connection to the database
 //*--------------------------------------------------------*/
 /*  Actual DB connection */
+string lmsj
 Connect using SQLCA;
 
-If SQLCA.SQLCode <> 0 Then
-	MessageBox ("No se pudo conectar a la base de datos ", SQLCA.SQLErrText )
+if SQLCA.SQLCODE <> 0 then
+	lmsj = 'No se pudo conectar a la base de datos: ' +  SQLCA.SQLErrText + '  ' + string(SQLCA.SQLDBCODE)
+	if SQLCA.SQLDBCODE = 999 then lmsj = "Base de datos no encontrada, solicite al con administracion del sistema"
+	if SQLCA.SQLDBCODE = -99 then lmsj = "Conexión a la Base de datos no especificada o deshabilitada, solicite configuración con administracion del sistema"
+	if SQLCA.SQLDBCODE = 18456 then lmsj = "Usuario o Password no son válidos, verifique si los ingresó correctamente e intente de nuevo. Si el error persiste consulte con administracion del sistema"
+	if SQLCA.SQLDBCODE = -104 then lmsj = "Usuario o Password no son válidos para el modulo, verifique si los ingresó correctamente e intente de nuevo. Si el error persiste consulte con administracion del sistema"
+	if SQLCA.SQLDBCODE = -105 then lmsj = "Base de datos no está activa, por favor avise a Administracion del Sistema"
+	if SQLCA.SQLDBCODE = -1074 then lmsj = "Usuario y Contraseña en blanco,Completar Usuario y Contraseña"
+	messagebox('Error de conexion',lmsj)
+	
 End If
 
 Return SQLCA.SQLCode

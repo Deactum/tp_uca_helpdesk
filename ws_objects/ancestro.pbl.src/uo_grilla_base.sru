@@ -247,7 +247,9 @@ end if
 end event
 
 type uo_control from uo_contrloles within uo_grilla_base
-integer x = 2747
+integer x = 2834
+integer y = 136
+integer height = 172
 integer taborder = 30
 end type
 

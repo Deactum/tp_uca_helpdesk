@@ -49,6 +49,22 @@ type variables
 long il_return = -1
 end variables
 
+forward prototypes
+public function boolean wf_tiene_rol (integer ai_rol)
+end prototypes
+
+public function boolean wf_tiene_rol (integer ai_rol);long ll_has = -1
+
+
+SELECT ROLES_CODIGO
+INTO :ll_has
+FROM USUARIOS_ROLES
+WHERE USUARIOS_CODIGO = :gs_usu_codigo
+COMMIT USING SQLCA;
+
+return ll_has = ai_rol 
+end function
+
 on w_login.create
 this.p_pass=create p_pass
 this.p_user=create p_user
@@ -83,12 +99,7 @@ destroy(this.r_1)
 end on
 
 event open;r_1.fillcolor = rgb(17, 51, 85) 
-string ls_user, ls_pass
-string ls_inifile = "./conexion.ini"
-ls_user = ProfileString ( ls_inifile, "Database", "LogID", "")
-ls_pass = ProfileString ( ls_inifile, "Database", "LogPassword","")
-sle_1.text = ls_user
-sle_2.text = ls_pass
+
 end event
 
 event closequery;message.longparm = il_return
@@ -150,11 +161,30 @@ else
 	p_pass.visible = false
 end if
 
-sqlca.logid = ls_user
-sqlca.logpass = ls_pass
-il_return =1
+SELECT CASE WHEN USUARIOS_CONTRASENA = :ls_pass THEN 0 ELSE 1 END AS OK_PASS
+INTO :il_return
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :ls_user
+COMMIT USING SQLCA;
+
+if il_return <> 0 then 
+	messagebox('Error de acceso', "Usuario o Password no son válidos, verifique si los ingresó correctamente e intente de nuevo. Si el error persiste consulte con administracion del sistema")
+	return
+end if 
+
+gs_usu_codigo = ls_user
+
+gb_gerente =				wf_tiene_rol(1)
+gb_encargado_tienda =	wf_tiene_rol(2)
+gb_tecnico_supervisor =	wf_tiene_rol(3)
+gb_tecnico = 				wf_tiene_rol(4)
+
+UPDATE USUARIOS
+SET USUARIOS_SESION = 1
+WHERE USUARIOS_CODIGO = :ls_user
+COMMIT USING SQLCA;
+
 close(parent)
-//closewithreturn(parent,1)
 
 end event
 
@@ -172,6 +202,7 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
+string text = "123"
 boolean border = false
 boolean password = true
 borderstyle borderstyle = stylelowered!
@@ -215,6 +246,7 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
+string text = "GG"
 boolean border = false
 borderstyle borderstyle = stylelowered!
 string placeholder = "Usuario"

@@ -7,9 +7,9 @@ type p_2 from picture within uo_menu
 end type
 type tv_1 from treeview within uo_menu
 end type
-type st_2 from statictext within uo_menu
+type st_usuario from statictext within uo_menu
 end type
-type p_1 from picture within uo_menu
+type p_imagen from picture within uo_menu
 end type
 type ln_1 from line within uo_menu
 end type
@@ -28,8 +28,8 @@ event ue_resize pbm_size
 event ue_clicked_logout ( )
 p_2 p_2
 tv_1 tv_1
-st_2 st_2
-p_1 p_1
+st_usuario st_usuario
+p_imagen p_imagen
 ln_1 ln_1
 end type
 global uo_menu uo_menu
@@ -49,6 +49,29 @@ public function string get_title (long al_index)
 end prototypes
 
 event ue_init();long ll_padre
+string ls_nombre, ls_apellido
+blob lblob_imagen
+
+// obtiene informacion del usuario
+SELECT USUARIOS_NOMBRE, USUARIOS_APELLIDO
+INTO :ls_nombre, :ls_apellido
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :gs_usu_codigo
+COMMIT USING SQLCA;
+
+// Obtiene imagen de usuario
+SELECTBLOB USUARIOS_FOTO
+INTO :lblob_imagen
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :gs_usu_codigo;
+COMMIT USING SQLCA;
+
+if isNull(lblob_imagen) then p_imagen.pictureName = '.\iconos\2x\baseline_person_white_48dp.png'
+p_imagen.setpicture(lblob_imagen)
+
+st_usuario.text = ls_apellido + ', ' + ls_nombre
+
+// construye el menu
 of_set_menu(0,'Inicio','tab_inicio','baseline_home_white_48dp.png') 
 ll_padre = of_set_menu(0,'Reparaciones','baseline_construction_white_48dp.png') //nodo padre
 	of_set_menu(ll_padre,'Clientes','tab_clientes','baseline_person_white_48dp.png') //nodo hijo
@@ -64,7 +87,7 @@ ll_padre = of_set_menu(0,'Administración','baseline_admin_panel_settings_white_
 	of_set_menu(ll_padre,'Parámetros','baseline_tune_white_48dp.png')
 	of_set_menu(ll_padre,'Usuarios','baseline_manage_accounts_white_48dp.png')
 ll_padre = of_set_menu(0,'Reportes','baseline_analytics_white_48dp.png')
-	of_set_menu(ll_padre,'Tiempo promedio de Reparación','tab_rpt_prueba','baseline_description_white_48dp.png')
+	of_set_menu(ll_padre,'Tiempo promedio de Reparación','baseline_description_white_48dp.png')
 end event
 
 event ue_resize;
@@ -108,21 +131,21 @@ end function
 on uo_menu.create
 this.p_2=create p_2
 this.tv_1=create tv_1
-this.st_2=create st_2
-this.p_1=create p_1
+this.st_usuario=create st_usuario
+this.p_imagen=create p_imagen
 this.ln_1=create ln_1
 this.Control[]={this.p_2,&
 this.tv_1,&
-this.st_2,&
-this.p_1,&
+this.st_usuario,&
+this.p_imagen,&
 this.ln_1}
 end on
 
 on uo_menu.destroy
 destroy(this.p_2)
 destroy(this.tv_1)
-destroy(this.st_2)
-destroy(this.p_1)
+destroy(this.st_usuario)
+destroy(this.p_imagen)
 destroy(this.ln_1)
 end on
 
@@ -171,29 +194,31 @@ end type
 event clicked;parent.event ue_clicked(handle)
 end event
 
-type st_2 from statictext within uo_menu
-integer x = 137
-integer y = 392
-integer width = 654
-integer height = 64
+type st_usuario from statictext within uo_menu
+integer x = 18
+integer y = 372
+integer width = 896
+integer height = 80
 integer textsize = -10
 integer weight = 400
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
-long textcolor = 33554432
+long textcolor = 16777215
 long backcolor = 67108864
 string text = "Usuario"
 alignment alignment = center!
+boolean border = true
 boolean focusrectangle = false
 end type
 
-type p_1 from picture within uo_menu
+type p_imagen from picture within uo_menu
 integer x = 270
 integer width = 389
 integer height = 360
 string picturename = ".\iconos\2x\baseline_person_white_48dp.png"
+boolean border = true
 boolean focusrectangle = false
 end type
 

@@ -2,19 +2,19 @@
 forward
 global type uo_contrloles from userobject
 end type
-type p_4 from picture within uo_contrloles
+type pb_4 from picturebutton within uo_contrloles
 end type
-type p_3 from picture within uo_contrloles
+type pb_3 from picturebutton within uo_contrloles
 end type
-type p_2 from picture within uo_contrloles
+type pb_2 from picturebutton within uo_contrloles
 end type
-type p_1 from picture within uo_contrloles
+type pb_1 from picturebutton within uo_contrloles
 end type
 end forward
 
 global type uo_contrloles from userobject
-integer width = 896
-integer height = 192
+integer width = 763
+integer height = 176
 long backcolor = 67108864
 string text = "none"
 long tabtextcolor = 33554432
@@ -23,73 +23,99 @@ event ue_actualizar ( )
 event ue_nuevo ( )
 event ue_salir ( )
 event ue_editar ( )
-p_4 p_4
-p_3 p_3
-p_2 p_2
-p_1 p_1
+pb_4 pb_4
+pb_3 pb_3
+pb_2 pb_2
+pb_1 pb_1
 end type
 global uo_contrloles uo_contrloles
 
 on uo_contrloles.create
-this.p_4=create p_4
-this.p_3=create p_3
-this.p_2=create p_2
-this.p_1=create p_1
-this.Control[]={this.p_4,&
-this.p_3,&
-this.p_2,&
-this.p_1}
+this.pb_4=create pb_4
+this.pb_3=create pb_3
+this.pb_2=create pb_2
+this.pb_1=create pb_1
+this.Control[]={this.pb_4,&
+this.pb_3,&
+this.pb_2,&
+this.pb_1}
 end on
 
 on uo_contrloles.destroy
-destroy(this.p_4)
-destroy(this.p_3)
-destroy(this.p_2)
-destroy(this.p_1)
+destroy(this.pb_4)
+destroy(this.pb_3)
+destroy(this.pb_2)
+destroy(this.pb_1)
 end on
 
-type p_4 from picture within uo_contrloles
-integer x = 667
-integer width = 219
-integer height = 192
-integer transparency = 40
-string picturename = ".\iconos\1x\baseline_logout_black_48dp.png"
-string powertiptext = "Salir"
-end type
-
-event clicked;event ue_salir()
-end event
-
-type p_3 from picture within uo_contrloles
-integer x = 448
-integer width = 219
-integer height = 192
-integer transparency = 40
+type pb_4 from picturebutton within uo_contrloles
+integer x = 375
+integer width = 197
+integer height = 176
+integer taborder = 20
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
 string picturename = ".\iconos\1x\baseline_edit_black_48dp.png"
-string powertiptext = "Editar"
+alignment htextalign = left!
 end type
 
-event clicked;event ue_editar()
+event clicked;parent.event ue_editar()
 end event
 
-type p_2 from picture within uo_contrloles
-integer x = 224
-integer width = 219
-integer height = 192
+type pb_3 from picturebutton within uo_contrloles
+integer x = 562
+integer width = 197
+integer height = 176
+integer taborder = 10
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+string picturename = ".\iconos\1x\baseline_logout_black_48dp.png"
+alignment htextalign = left!
+end type
+
+event clicked;parent.event ue_salir( )
+end event
+
+type pb_2 from picturebutton within uo_contrloles
+integer x = 187
+integer width = 197
+integer height = 176
+integer taborder = 10
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
 string picturename = ".\iconos\png\plus.png"
-string powertiptext = "Nuevo"
+alignment htextalign = left!
 end type
 
-event clicked;event ue_nuevo()
+event clicked;parent.event ue_nuevo( )
 end event
 
-type p_1 from picture within uo_contrloles
-integer width = 219
-integer height = 192
+type pb_1 from picturebutton within uo_contrloles
+integer width = 197
+integer height = 176
+integer taborder = 10
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
 string picturename = ".\iconos\png\actualizar.png"
-string powertiptext = "Actualizar"
+alignment htextalign = left!
 end type
 
-event clicked;event ue_actualizar()
+event clicked;parent.event ue_actualizar( )
 end event
 
