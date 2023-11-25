@@ -74,7 +74,8 @@ integer x = 544
 integer y = 32
 integer width = 155
 integer height = 132
-string picturename = ".\iconos\1x\baseline_last_page_black_48dp.png"
+integer transparency = 40
+string picturename = ".\iconos\1x\baseline_navigate_next_black_48dp.png"
 borderstyle borderstyle = styleraised!
 end type
 
@@ -86,7 +87,8 @@ integer x = 27
 integer y = 32
 integer width = 155
 integer height = 132
-string picturename = ".\iconos\1x\baseline_first_page_black_48dp.png"
+integer transparency = 40
+string picturename = ".\iconos\1x\baseline_navigate_before_black_48dp.png"
 borderstyle borderstyle = styleraised!
 end type
 
@@ -104,4 +106,3 @@ integer height = 188
 integer cornerheight = 40
 integer cornerwidth = 46
 end type
-
