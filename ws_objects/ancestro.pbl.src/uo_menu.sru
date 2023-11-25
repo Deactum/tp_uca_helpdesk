@@ -7,7 +7,7 @@ type p_2 from picture within uo_menu
 end type
 type tv_1 from treeview within uo_menu
 end type
-type st_2 from statictext within uo_menu
+type st_usuario from statictext within uo_menu
 end type
 type p_1 from picture within uo_menu
 end type
@@ -28,7 +28,7 @@ event ue_resize pbm_size
 event ue_clicked_logout ( )
 p_2 p_2
 tv_1 tv_1
-st_2 st_2
+st_usuario st_usuario
 p_1 p_1
 ln_1 ln_1
 end type
@@ -49,6 +49,18 @@ public function string get_title (long al_index)
 end prototypes
 
 event ue_init();long ll_padre
+string ls_nombre, ls_apellido
+
+// obtiene informacion del usuario
+SELECT USUARIOS_NOMBRE, USUARIOS_APELLIDO
+INTO :ls_nombre, :ls_apellido
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :gs_usu_codigo
+COMMIT USING SQLCA;
+
+st_usuario.text = ls_apellido + ', ' + ls_nombre
+
+// construye el menu
 of_set_menu(0,'Inicio','tab_inicio','baseline_home_white_48dp.png') 
 ll_padre = of_set_menu(0,'Reparaciones','baseline_construction_white_48dp.png') //nodo padre
 	of_set_menu(ll_padre,'Clientes','tab_clientes','baseline_person_white_48dp.png') //nodo hijo
@@ -108,12 +120,12 @@ end function
 on uo_menu.create
 this.p_2=create p_2
 this.tv_1=create tv_1
-this.st_2=create st_2
+this.st_usuario=create st_usuario
 this.p_1=create p_1
 this.ln_1=create ln_1
 this.Control[]={this.p_2,&
 this.tv_1,&
-this.st_2,&
+this.st_usuario,&
 this.p_1,&
 this.ln_1}
 end on
@@ -121,7 +133,7 @@ end on
 on uo_menu.destroy
 destroy(this.p_2)
 destroy(this.tv_1)
-destroy(this.st_2)
+destroy(this.st_usuario)
 destroy(this.p_1)
 destroy(this.ln_1)
 end on
@@ -171,21 +183,22 @@ end type
 event clicked;parent.event ue_clicked(handle)
 end event
 
-type st_2 from statictext within uo_menu
-integer x = 137
-integer y = 392
-integer width = 654
-integer height = 64
+type st_usuario from statictext within uo_menu
+integer x = 18
+integer y = 372
+integer width = 896
+integer height = 80
 integer textsize = -10
 integer weight = 400
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
-long textcolor = 33554432
+long textcolor = 16777215
 long backcolor = 67108864
 string text = "Usuario"
 alignment alignment = center!
+boolean border = true
 boolean focusrectangle = false
 end type
 
@@ -194,6 +207,7 @@ integer x = 270
 integer width = 389
 integer height = 360
 string picturename = ".\iconos\2x\baseline_person_white_48dp.png"
+boolean border = true
 boolean focusrectangle = false
 end type
 
