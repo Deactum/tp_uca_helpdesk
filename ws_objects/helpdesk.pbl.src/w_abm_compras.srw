@@ -5,10 +5,32 @@ end type
 end forward
 
 global type w_abm_compras from w_abm_cyd_base
-integer width = 2615
+integer width = 2592
 integer height = 2312
 end type
 global w_abm_compras w_abm_compras
+
+forward prototypes
+public function integer wf_refresh_proveedores (integer al_proveedor)
+end prototypes
+
+public function integer wf_refresh_proveedores (integer al_proveedor);DatawindowChild ldwC_proveedores
+
+// se refresca la dddw para que aparezca el proveedor
+dw_cabecera.GetChild('proveedores_codigo', ldwC_proveedores)
+ldwC_proveedores.SetTransObject(SQLCA)
+
+if ldwC_proveedores.Retrieve() < 0 then
+	ROLLBACK USING SQLCA;
+	return -1
+end if
+COMMIT USING SQLCA;
+
+dw_cabecera.SetItem(1, 'proveedores_codigo', al_proveedor)
+dw_cabecera.enabled = true
+
+return 0
+end function
 
 on w_abm_compras.create
 call super::create
@@ -58,23 +80,19 @@ if dwo.name  = 'b_new' then
 	ORDER BY PROVEEDORES_CODIGO DESC
 	COMMIT USING SQLCA;
 	
-	// se refresca la dddw para que aparezca el proveedor
-	this.GetChild('proveedores_codigo', ldwC_proveedores)
-	ldwC_proveedores.SetTransObject(SQLCA)
-	
-	if ldwC_proveedores.Retrieve() < 0 then
-		ROLLBACK USING SQLCA;
-		return
-	end if
-	COMMIT USING SQLCA;
-	
-	this.SetItem(1, 'proveedores_codigo', ll_proveedor_cod)
-	this.enabled = true
+	if wf_refresh_proveedores(ll_proveedor_cod) = -1 then return
 	
 end if 
 
 if dwo.name  = 'b_edit' then
-	openWithParm(dw_abm_proveedores, this.GetItemNumber(1, 'proveedores_codigo'))
+	ll_proveedor_cod = this.GetItemNumber(1, 'proveedores_codigo')
+	
+	openWithParm(dw_abm_proveedores, string(ll_proveedor_cod))
+	
+	this.enabled = false
+	
+	if wf_refresh_proveedores(ll_proveedor_cod) = -1 then return
+	
 end if 
 end event
 
