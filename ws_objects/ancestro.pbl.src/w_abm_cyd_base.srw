@@ -73,7 +73,7 @@ end type
 event pbm_dwnkey;if key = KeyEnter! then
 	
 	if this.GetSelectedRow(0) = this.RowCount() then 
-		this.insertRow(this.RowCount())
+		this.insertRow(this.RowCount() + 1)
 	else
 		this.ScrollToRow ( this.GetSelectedRow(0) )
 	end if 
