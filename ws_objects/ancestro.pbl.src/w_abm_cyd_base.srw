@@ -71,7 +71,13 @@ integer taborder = 20
 end type
 
 event pbm_dwnkey;if key = KeyEnter! then
-	this.insertRow(this.RowCount())
+	
+	if this.GetSelectedRow(0) = this.RowCount() then 
+		this.insertRow(this.RowCount())
+	else
+		this.ScrollToRow ( this.GetSelectedRow(0) )
+	end if 
+
 end if
 end event
 
