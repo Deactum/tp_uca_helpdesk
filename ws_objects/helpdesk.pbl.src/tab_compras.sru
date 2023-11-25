@@ -6,6 +6,7 @@ end forward
 
 global type tab_compras from uo_grilla_base
 string is_titulo = "Compras"
+string is_abm = "w_abm_compras"
 end type
 global tab_compras tab_compras
 
