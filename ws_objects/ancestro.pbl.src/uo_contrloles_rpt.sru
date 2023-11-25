@@ -13,7 +13,7 @@ end type
 end forward
 
 global type uo_contrloles_rpt from userobject
-integer width = 891
+integer width = 878
 integer height = 196
 long backcolor = 67108864
 string text = "none"
@@ -52,8 +52,8 @@ type p_4 from picture within uo_contrloles_rpt
 integer width = 219
 integer height = 192
 string picturename = ".\iconos\png\actualizar.png"
-boolean border = true
 borderstyle borderstyle = styleraised!
+string powertiptext = "Actualizar"
 end type
 
 event clicked;event ue_click_actualizar()
@@ -63,11 +63,11 @@ type p_2 from picture within uo_contrloles_rpt
 integer x = 439
 integer width = 219
 integer height = 192
-integer transparency = 20
+integer transparency = 40
 boolean originalsize = true
 string picturename = ".\iconos\1x\baseline_print_black_48dp.png"
-boolean border = true
 borderstyle borderstyle = styleraised!
+string powertiptext = "Imprimir"
 end type
 
 event clicked;event ue_click_imprimir()
@@ -77,11 +77,11 @@ type p_1 from picture within uo_contrloles_rpt
 integer x = 658
 integer width = 219
 integer height = 192
-integer transparency = 20
+integer transparency = 40
 boolean originalsize = true
 string picturename = "D:\Archivos\UCA\ingenieria del software\DEV\iconos\1x\baseline_logout_black_48dp.png"
-boolean border = true
 borderstyle borderstyle = styleraised!
+string powertiptext = "Salir"
 end type
 
 event clicked;event ue_click_salir()
@@ -91,11 +91,11 @@ type p_3 from picture within uo_contrloles_rpt
 integer x = 219
 integer width = 219
 integer height = 192
-integer transparency = 20
+integer transparency = 40
 boolean originalsize = true
 string picturename = ".\iconos\1x\baseline_file_download_black_48dp.png"
-boolean border = true
 borderstyle borderstyle = styleraised!
+string powertiptext = "Descargar PDF"
 end type
 
 event clicked;event ue_click_exportar()

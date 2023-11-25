@@ -2,7 +2,7 @@
 forward
 global type uo_reporte_base from uo_tab
 end type
-type uo_2 from uo_desplazador within uo_reporte_base
+type uo_2 from uo_desplazador_rpt within uo_reporte_base
 end type
 type uo_1 from uo_contrloles_rpt within uo_reporte_base
 end type
@@ -37,6 +37,14 @@ global uo_reporte_base uo_reporte_base
 type variables
 string is_titulo = 'Título Del Reporte'
 end variables
+
+forward prototypes
+public subroutine of_salir ()
+end prototypes
+
+public subroutine of_salir ();parent.triggerevent('ue_cerrar_tab')
+end subroutine
+
 on uo_reporte_base.create
 int iCurrent
 call super::create
@@ -81,15 +89,15 @@ dw_datos.width = this.width - 10
 dw_datos.height = this.height - uo_2.height - dw_datos.y -200
 end event
 
-type uo_2 from uo_desplazador within uo_reporte_base
-integer x = 1943
+event constructor;call super::constructor;em_1.text = string(today() )
+em_2.text = string(today() )
+end event
+
+type uo_2 from uo_desplazador_rpt within uo_reporte_base
+integer x = 1934
 integer y = 2420
 integer taborder = 40
 end type
-
-on uo_2.destroy
-call uo_desplazador::destroy
-end on
 
 event ue_siguiente;call super::ue_siguiente;dw_datos.scrollnextpage( )
 end event
@@ -97,8 +105,21 @@ end event
 event ue_anterior;call super::ue_anterior;dw_datos.scrollpriorpage( )
 end event
 
-event constructor;call super::constructor;this.st_1.visible =  false
+event ue_final;call super::ue_final;long ll_nextrow
+ll_nextrow = dw_datos.RowCount()
+dw_datos.ScrollToRow(ll_nextrow)
+dw_datos.SetRow(ll_nextrow)
+
 end event
+
+event ue_inicio;call super::ue_inicio;dw_datos.ScrollToRow(1)
+dw_datos.SetRow(1)
+
+end event
+
+on uo_2.destroy
+call uo_desplazador_rpt::destroy
+end on
 
 type uo_1 from uo_contrloles_rpt within uo_reporte_base
 integer x = 1765
@@ -109,7 +130,31 @@ on uo_1.destroy
 call uo_contrloles_rpt::destroy
 end on
 
-event ue_click_imprimir;call super::ue_click_imprimir;messagebox('','imprimir')
+event ue_click_imprimir;call super::ue_click_imprimir;openwithparm(w_imprimir, dw_datos)
+If Message.DoubleParm = -1 Then Return
+dw_datos.Print(True)
+end event
+
+event ue_click_salir;call super::ue_click_salir;of_salir()
+end event
+
+event ue_click_actualizar;call super::ue_click_actualizar;date ld_fecha_ini ,ld_fecha_fin
+em_1.getdata(ld_fecha_ini)
+em_2.getdata(ld_fecha_fin)
+dw_datos.retrieve( ld_fecha_ini, ld_fecha_fin)
+end event
+
+event ue_click_exportar;call super::ue_click_exportar;string ls_path, ls_file
+integer li_ret, li_rc
+
+//ls_path = GetCurrentDirectory ( )+'\'+is_titulo+'.pdf'
+ls_path = '%USERPROFILE%\Documents\'+is_titulo+'.pdf'
+li_rc = GetFileSaveName ( "Seleccione Archivo", ls_path, ls_file, "PDF", "Todos (*.*),*.PDF" , ls_path,32770)
+IF li_rc = 1 Then
+	dw_datos.saveas(ls_file,PDF!,false)
+	changedirectory(_path)
+end if
+
 end event
 
 type dw_datos from datawindow within uo_reporte_base
@@ -120,12 +165,13 @@ integer taborder = 30
 string title = "none"
 boolean hscrollbar = true
 boolean vscrollbar = true
-boolean border = false
 boolean livescroll = true
 borderstyle borderstyle = stylelowered!
 end type
 
 event constructor;this.settransobject(sqlca)
+this.modify ("DataWindow.Print.Preview=yes")
+this.modify('DataWindow.Print.Preview.rulers=true')
 end event
 
 type em_2 from editmask within uo_reporte_base
@@ -204,19 +250,18 @@ boolean focusrectangle = false
 end type
 
 type st_titulo from statictext within uo_reporte_base
-integer x = 9
-integer y = 24
-integer width = 1047
-integer height = 132
+integer width = 1746
+integer height = 144
 integer textsize = -20
 integer weight = 400
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
-long textcolor = 33554432
+long textcolor = 8421504
 long backcolor = 67108864
 string text = "Título"
+long bordercolor = 8421504
 boolean focusrectangle = false
 end type
 

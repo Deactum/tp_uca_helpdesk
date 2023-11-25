@@ -64,7 +64,7 @@ ll_padre = of_set_menu(0,'Administración','baseline_admin_panel_settings_white_
 	of_set_menu(ll_padre,'Parámetros','baseline_tune_white_48dp.png')
 	of_set_menu(ll_padre,'Usuarios','baseline_manage_accounts_white_48dp.png')
 ll_padre = of_set_menu(0,'Reportes','baseline_analytics_white_48dp.png')
-	of_set_menu(ll_padre,'Tiempo promedio de Reparación','uo_reporte_base','baseline_description_white_48dp.png')
+	of_set_menu(ll_padre,'Tiempo promedio de Reparación','tab_rpt_prueba','baseline_description_white_48dp.png')
 end event
 
 event ue_resize;

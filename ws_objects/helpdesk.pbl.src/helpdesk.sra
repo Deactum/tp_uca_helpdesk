@@ -12,6 +12,7 @@ end forward
 
 global variables
 powerobject g_object
+string _path
 end variables
 global type helpdesk from application
 string appname = "helpdesk"
@@ -70,6 +71,7 @@ if l_ret = 1 then
 	
 	Destroy lnv_connectserv
 end if
+_path = getcurrentdirectory()
 //--------------------------------------------------------------------------------------
 end event
 

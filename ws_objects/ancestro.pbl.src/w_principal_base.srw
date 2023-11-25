@@ -4,6 +4,8 @@ global type w_principal_base from window
 end type
 type mdi_1 from mdiclient within w_principal_base
 end type
+type lv_1 from listview within w_principal_base
+end type
 type uo_1 from uo_menu within w_principal_base
 end type
 type uo_2 from uo_barra_superior within w_principal_base
@@ -31,6 +33,7 @@ string icon = "AppIcon!"
 boolean center = true
 event ue_resize ( )
 mdi_1 mdi_1
+lv_1 lv_1
 uo_1 uo_1
 uo_2 uo_2
 tab_principal tab_principal
@@ -38,24 +41,32 @@ uo_barra uo_barra
 end type
 global w_principal_base w_principal_base
 
+type variables
+private string is_objetos []
+end variables
+
 forward prototypes
 public function boolean wf_buscar_tab (string as_nombreobj)
+public subroutine wf_reciente (string as_titulo, string as_objeto)
 end prototypes
 
 event ue_resize();//resize del tab
 if this.windowstate = Normal! then 
 	uo_barra.y = this.height - 210
 	uo_2.y = 0
+	uo_2.width = this.width
+	lv_1.x =  uo_2.width - lv_1.width
 	tab_principal.y = uo_2.height
 	tab_principal.height = this.height - tab_principal.y
 	tab_principal.width = this.width -tab_principal.x +130
 else
 	uo_barra.y = this.height - 240
+	uo_2.width = this.width -60
+	lv_1.x =  uo_2.width - lv_1.width
 	tab_principal.y = uo_2.height
 	tab_principal.height = this.height -tab_principal.y -30 
 	tab_principal.width = this.width -tab_principal.x  +55 
 end if
-uo_2.width = this.width
 uo_barra.width = this.width
 uo_barra.event ue_resize( )
 
@@ -81,14 +92,26 @@ next
 return false
 end function
 
+public subroutine wf_reciente (string as_titulo, string as_objeto);string ls_titulo
+long ll_upper
+if not wf_buscar_tab(as_objeto) then
+	ls_titulo =  string(lv_1.totalitems( )+1) + ' - '+ as_titulo
+	lv_1.additem(ls_titulo,0)
+	ll_upper = upperbound(is_objetos)+1
+	is_objetos[ll_upper] = as_objeto
+end if
+end subroutine
+
 on w_principal_base.create
 if this.MenuName = "m_menu_invisible" then this.MenuID = create m_menu_invisible
 this.mdi_1=create mdi_1
+this.lv_1=create lv_1
 this.uo_1=create uo_1
 this.uo_2=create uo_2
 this.tab_principal=create tab_principal
 this.uo_barra=create uo_barra
 this.Control[]={this.mdi_1,&
+this.lv_1,&
 this.uo_1,&
 this.uo_2,&
 this.tab_principal,&
@@ -98,6 +121,7 @@ end on
 on w_principal_base.destroy
 if IsValid(MenuID) then destroy(MenuID)
 destroy(this.mdi_1)
+destroy(this.lv_1)
 destroy(this.uo_1)
 destroy(this.uo_2)
 destroy(this.tab_principal)
@@ -113,6 +137,56 @@ end event
 type mdi_1 from mdiclient within w_principal_base
 long BackColor=268435456
 end type
+
+type lv_1 from listview within w_principal_base
+integer x = 4133
+integer y = 208
+integer width = 713
+integer height = 560
+integer taborder = 30
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33554432
+borderstyle borderstyle = stylelowered!
+boolean buttonheader = false
+boolean showheader = false
+boolean labelwrap = false
+boolean hideselection = false
+listviewview view = listviewsmallicon!
+long largepicturemaskcolor = 536870912
+long smallpicturemaskcolor = 536870912
+long statepicturemaskcolor = 536870912
+end type
+
+event constructor;this.visible = false
+end event
+
+event losefocus;this.visible =  false
+end event
+
+event clicked;this.visible =  false
+// abre un tab al hacer doble clic sobre un registro y si ya existe se visualiza el tab
+try
+	string LnombreObj ,ltitulo
+	long i
+	if index = -1 then return
+	LnombreObj = is_objetos[index]
+	if LnombreObj = '' then return
+	//Ltitulo = uo_1.get_title(index)
+	if not parent.wf_buscar_tab(LnombreObj) then
+		UserObject u_data
+		tab_principal.OpenTabWithParm(u_data, 'objeto',lnombreObj , 0)
+		tab_principal.Selecttab(u_data)
+		tab_principal.Control[UpperBound(tab_principal.Control,1)].Text = ltitulo
+	end if
+catch (runtimeerror er)
+	messagebox("Error del Sistema", er.GetMessage())
+end try
+end event
 
 type uo_1 from uo_menu within w_principal_base
 integer y = 204
@@ -133,18 +207,13 @@ try
 	LnombreObj = uo_1.get_object(index)
 	if LnombreObj = '' then return
 	Ltitulo = uo_1.get_title(index)
+	wf_reciente(ltitulo,LnombreObj)
 	if not parent.wf_buscar_tab(LnombreObj) then
 		UserObject u_data
 		tab_principal.OpenTabWithParm(u_data, 'objeto',lnombreObj , 0)
 		tab_principal.Selecttab(u_data)
 		tab_principal.Control[UpperBound(tab_principal.Control,1)].Text = ltitulo
 	end if
-	//	tab_calendario.event ue_maximizar( false)
-	//	parent.event ue_reciente(ltitulo)
-		
-	// hace foco en la categoria princial 
-//	wf_setactivarcategoria(rbb_1,'Principal')
-	
 catch (runtimeerror er)
 	messagebox("Error del Sistema", er.GetMessage())
 end try
@@ -186,6 +255,13 @@ parent.event ue_resize( )
 end event
 
 event constructor;call super::constructor;this.x =0
+end event
+
+event ue_reciente;call super::ue_reciente;if lv_1.visible then 
+	lv_1.visible = false
+else 
+	lv_1.visible = true
+end if
 end event
 
 type tab_principal from tab within w_principal_base
