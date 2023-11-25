@@ -5,10 +5,10 @@ header(height=80 color="536870912" transparency="0" gradient.color="8421504" gra
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=92 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=char(30) update=yes updatewhereclause=yes key=yes name=compras_codigo dbname="COMPRAS.COMPRAS_CODIGO" )
- column=(type=char(14) update=yes updatewhereclause=yes name=factura dbname="Factura" )
- column=(type=datetime update=yes updatewhereclause=yes name=compras_fecha dbname="COMPRAS.COMPRAS_FECHA" )
- column=(type=long update=yes updatewhereclause=yes name=compras_monto dbname="COMPRAS.COMPRAS_MONTO" )
+table(column=(type=char(30) update=yes updatewhereclause=yes key=yes name=compras_codigo dbname="compras.compras_codigo" dbalias="c.compras_codigo" )
+ column=(type=char(14) update=yes updatewhereclause=yes name=factura dbname="factura" )
+ column=(type=datetime update=yes updatewhereclause=yes name=compras_fecha dbname="compras.compras_fecha" dbalias="c.compras_fecha" )
+ column=(type=long update=yes updatewhereclause=yes name=compras_monto dbname="compras.compras_monto" dbalias="c.compras_monto" )
  retrieve="declare @pagina int = :pagina
 declare @registros int = :registros
 declare @saltar int = @pagina*@registros
@@ -18,8 +18,7 @@ c.COMPRAS_NRO_COMPROBANTE+ c.COMPRAS_ESTABLECIMIENTO+ c.COMPRAS_PUNTO_EXPEDICION
 c.COMPRAS_FECHA,
 c.COMPRAS_MONTO
 from COMPRAS c
-where c.COMPRAS_CODIGO like :busqueda or
-c.COMPRAS_NRO_COMPROBANTE like :busqueda
+where c.COMPRAS_CODIGO like :busqueda or c.COMPRAS_NRO_COMPROBANTE like :busqueda or c.COMPRAS_FECHA like :busqueda or c.COMPRAS_MONTO like :busqueda
 order by 1 desc
 offset @saltar rows
 fetch next @registros rows only" update="COMPRAS" updatewhere=1 updatekeyinplace=no arguments=(("pagina", number),("registros", number),("busqueda", string)) )
