@@ -4,9 +4,11 @@ global type w_principal_base from window
 end type
 type mdi_1 from mdiclient within w_principal_base
 end type
-type uo_side_menu from uo_menu within w_principal_base
+type lv_1 from listview within w_principal_base
 end type
-type uo_header from uo_barra_superior within w_principal_base
+type uo_1 from uo_menu within w_principal_base
+end type
+type uo_2 from uo_barra_superior within w_principal_base
 end type
 type tab_principal from tab within w_principal_base
 end type
@@ -31,37 +33,46 @@ string icon = "AppIcon!"
 boolean center = true
 event ue_resize ( )
 mdi_1 mdi_1
-uo_side_menu uo_side_menu
-uo_header uo_header
+lv_1 lv_1
+uo_1 uo_1
+uo_2 uo_2
 tab_principal tab_principal
 uo_barra uo_barra
 end type
 global w_principal_base w_principal_base
 
+type variables
+private string is_objetos []
+end variables
+
 forward prototypes
 public function boolean wf_buscar_tab (string as_nombreobj)
+public subroutine wf_reciente (string as_titulo, string as_objeto)
 end prototypes
 
 event ue_resize();//resize del tab
 if this.windowstate = Normal! then 
 	uo_barra.y = this.height - 210
-	uo_header.y = 0
-	tab_principal.y = uo_header.height
+	uo_2.y = 0
+	uo_2.width = this.width
+	lv_1.x =  uo_2.width - lv_1.width
+	tab_principal.y = uo_2.height
 	tab_principal.height = this.height - tab_principal.y
 	tab_principal.width = this.width -tab_principal.x +130
 else
 	uo_barra.y = this.height - 240
-	tab_principal.y = uo_header.height
+	uo_2.width = this.width -60
+	lv_1.x =  uo_2.width - lv_1.width
+	tab_principal.y = uo_2.height
 	tab_principal.height = this.height -tab_principal.y -30 
 	tab_principal.width = this.width -tab_principal.x  +55 
 end if
-uo_header.width = this.width
 uo_barra.width = this.width
 uo_barra.event ue_resize( )
 
 
 //resize del menu 
-uo_side_menu.height = this.height -uo_barra.height +20
+uo_1.height = this.height -uo_barra.height +20
 //uo_1.lv_menu.height =  uo_1.height
 //uo_1.lv_colapsado.height = uo_1.height
 
@@ -81,16 +92,37 @@ next
 return false
 end function
 
+public subroutine wf_reciente (string as_titulo, string as_objeto);string ls_titulo
+long ll_upper, ll_i
+boolean lb_encontrado = false
+if not wf_buscar_tab(as_objeto) then
+	ls_titulo =  string(lv_1.totalitems( )+1) + ' - '+ as_titulo
+	ll_upper = upperbound(is_objetos)
+	for ll_i = 1 to ll_upper
+		if is_objetos[ll_i] = as_objeto then
+			lb_encontrado = true
+			ll_i = ll_upper
+		end if
+	next
+	if not lb_encontrado then 
+		is_objetos[ll_upper+1] = as_objeto
+		lv_1.additem(ls_titulo,0)
+	end if
+end if
+end subroutine
+
 on w_principal_base.create
 if this.MenuName = "m_menu_invisible" then this.MenuID = create m_menu_invisible
 this.mdi_1=create mdi_1
-this.uo_side_menu=create uo_side_menu
-this.uo_header=create uo_header
+this.lv_1=create lv_1
+this.uo_1=create uo_1
+this.uo_2=create uo_2
 this.tab_principal=create tab_principal
 this.uo_barra=create uo_barra
 this.Control[]={this.mdi_1,&
-this.uo_side_menu,&
-this.uo_header,&
+this.lv_1,&
+this.uo_1,&
+this.uo_2,&
 this.tab_principal,&
 this.uo_barra}
 end on
@@ -98,8 +130,9 @@ end on
 on w_principal_base.destroy
 if IsValid(MenuID) then destroy(MenuID)
 destroy(this.mdi_1)
-destroy(this.uo_side_menu)
-destroy(this.uo_header)
+destroy(this.lv_1)
+destroy(this.uo_1)
+destroy(this.uo_2)
 destroy(this.tab_principal)
 destroy(this.uo_barra)
 end on
@@ -107,19 +140,69 @@ end on
 event resize;event ue_resize()
 end event
 
-event open;uo_header.event ue_clicked()
+event open;uo_2.event ue_clicked()
 end event
 
 type mdi_1 from mdiclient within w_principal_base
 long BackColor=268435456
 end type
 
-type uo_side_menu from uo_menu within w_principal_base
+type lv_1 from listview within w_principal_base
+integer x = 4133
+integer y = 208
+integer width = 713
+integer height = 560
+integer taborder = 30
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33554432
+borderstyle borderstyle = stylelowered!
+boolean buttonheader = false
+boolean showheader = false
+boolean labelwrap = false
+boolean hideselection = false
+listviewview view = listviewsmallicon!
+long largepicturemaskcolor = 536870912
+long smallpicturemaskcolor = 536870912
+long statepicturemaskcolor = 536870912
+end type
+
+event constructor;this.visible = false
+end event
+
+event losefocus;this.visible =  false
+end event
+
+event clicked;this.visible =  false
+// abre un tab al hacer doble clic sobre un registro y si ya existe se visualiza el tab
+try
+	string LnombreObj ,ltitulo
+	long i
+	if index = -1 then return
+	LnombreObj = is_objetos[index]
+	if LnombreObj = '' then return
+	//Ltitulo = uo_1.get_title(index)
+	if not parent.wf_buscar_tab(LnombreObj) then
+		UserObject u_data
+		tab_principal.OpenTabWithParm(u_data, 'objeto',lnombreObj , 0)
+		tab_principal.Selecttab(u_data)
+		tab_principal.Control[UpperBound(tab_principal.Control,1)].Text = ltitulo
+	end if
+catch (runtimeerror er)
+	messagebox("Error del Sistema", er.GetMessage())
+end try
+end event
+
+type uo_1 from uo_menu within w_principal_base
 integer y = 204
 integer taborder = 30
 end type
 
-on uo_side_menu.destroy
+on uo_1.destroy
 call uo_menu::destroy
 end on
 
@@ -130,28 +213,23 @@ event ue_clicked;call super::ue_clicked;// abre un tab al hacer doble clic sobre
 try
 	string LnombreObj ,ltitulo
 	long i
-	LnombreObj = uo_side_menu.get_object(index)
+	LnombreObj = uo_1.get_object(index)
 	if LnombreObj = '' then return
-	Ltitulo = uo_side_menu.get_title(index)
+	Ltitulo = uo_1.get_title(index)
+	wf_reciente(ltitulo,LnombreObj)
 	if not parent.wf_buscar_tab(LnombreObj) then
 		UserObject u_data
 		tab_principal.OpenTabWithParm(u_data, 'objeto',lnombreObj , 0)
 		tab_principal.Selecttab(u_data)
 		tab_principal.Control[UpperBound(tab_principal.Control,1)].Text = ltitulo
 	end if
-	//	tab_calendario.event ue_maximizar( false)
-	//	parent.event ue_reciente(ltitulo)
-		
-	// hace foco en la categoria princial 
-//	wf_setactivarcategoria(rbb_1,'Principal')
-	
 catch (runtimeerror er)
 	messagebox("Error del Sistema", er.GetMessage())
 end try
 
 end event
 
-event ue_init;call super::ue_init;uo_side_menu.event ue_clicked(1) //para abrir por default el tab inicio 
+event ue_init;call super::ue_init;uo_1.event ue_clicked(1) //para abrir por default el tab inicio 
 end event
 
 event ue_clicked_logout;call super::ue_clicked_logout;close(parent)
@@ -159,33 +237,40 @@ event ue_clicked_logout;call super::ue_clicked_logout;close(parent)
 
 end event
 
-type uo_header from uo_barra_superior within w_principal_base
+type uo_2 from uo_barra_superior within w_principal_base
 integer x = 923
 integer width = 3918
 integer taborder = 10
 end type
 
-on uo_header.destroy
+on uo_2.destroy
 call uo_barra_superior::destroy
 end on
 
-event ue_clicked;call super::ue_clicked;if uo_side_menu.ib_flag then 
-	uo_side_menu.width= 0
-	uo_side_menu.ib_flag = false
+event ue_clicked;call super::ue_clicked;if uo_1.ib_flag then 
+	uo_1.width= 0
+	uo_1.ib_flag = false
 	//uo_2.x = 0
-	this.width = parent.width
+	uo_2.width = parent.width
 	tab_principal.x = 0
 else
-	uo_side_menu.width = 923
-	uo_side_menu.ib_flag = true
-	//uo_side_menu.x =  923
-	this.width = parent.width - 923
+	uo_1.width = 923
+	uo_1.ib_flag = true
+	//uo_2.x =  923
+	uo_2.width = parent.width - 923
 	tab_principal.x = 923
 end if
 parent.event ue_resize( )
 end event
 
 event constructor;call super::constructor;this.x =0
+end event
+
+event ue_reciente;call super::ue_reciente;if lv_1.visible then 
+	lv_1.visible = false
+else 
+	lv_1.visible = true
+end if
 end event
 
 type tab_principal from tab within w_principal_base
@@ -229,4 +314,3 @@ end type
 on uo_barra.destroy
 call uo_barra_inferior::destroy
 end on
-
