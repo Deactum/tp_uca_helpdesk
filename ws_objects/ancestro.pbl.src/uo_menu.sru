@@ -85,7 +85,7 @@ ll_padre = of_set_menu(0,'Depósito','baseline_inventory_white_48dp.png')
 	of_set_menu(ll_padre,'Proveedores','tab_proveedores','baseline_wysiwyg_white_48dp.png')
 ll_padre = of_set_menu(0,'Administración','baseline_admin_panel_settings_white_48dp.png')
 	of_set_menu(ll_padre,'Parámetros','baseline_tune_white_48dp.png')
-	of_set_menu(ll_padre,'Usuarios','baseline_manage_accounts_white_48dp.png')
+	of_set_menu(ll_padre,'Usuarios','tab_usuarios','baseline_manage_accounts_white_48dp.png')
 ll_padre = of_set_menu(0,'Reportes','baseline_analytics_white_48dp.png')
 	of_set_menu(ll_padre,'Tiempo promedio de Reparación','baseline_description_white_48dp.png')
 end event
