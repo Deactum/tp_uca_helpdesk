@@ -6,7 +6,7 @@ summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gra
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=564 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 table(column=(type=long update=yes updatewhereclause=yes key=yes name=clientes_codigo dbname="CLIENTES.CLIENTES_CODIGO" )
- column=(type=long update=yes updatewhereclause=yes name=tipo_docu_codigo dbname="CLIENTES.TIPO_DOCU_CODIGO" initial="1" )
+ column=(type=long update=yes updatewhereclause=yes name=tipo_docu_codigo dbname="CLIENTES.TIPO_DOCU_CODIGO" initial="2" )
  column=(type=char(50) update=yes updatewhereclause=yes name=clientes_nombre dbname="CLIENTES.CLIENTES_NOMBRE" )
  column=(type=char(50) update=yes updatewhereclause=yes name=clientes_apellido dbname="CLIENTES.CLIENTES_APELLIDO" )
  column=(type=char(50) update=yes updatewhereclause=yes name=clientes_numero dbname="CLIENTES.CLIENTES_NUMERO" )
