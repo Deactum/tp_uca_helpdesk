@@ -19,12 +19,12 @@ on w_abm_clientes.destroy
 call super::destroy
 end on
 
-type cb_2 from w_abm_base`cb_2 within w_abm_clientes
+type cb_cancelar from w_abm_base`cb_cancelar within w_abm_clientes
 integer x = 1170
 integer y = 632
 end type
 
-type cb_1 from w_abm_base`cb_1 within w_abm_clientes
+type cb_aceptar from w_abm_base`cb_aceptar within w_abm_clientes
 integer x = 1568
 integer y = 632
 end type

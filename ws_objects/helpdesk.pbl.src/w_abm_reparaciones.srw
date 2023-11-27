@@ -18,12 +18,12 @@ on w_abm_reparaciones.destroy
 call super::destroy
 end on
 
-type cb_2 from w_abm_base`cb_2 within w_abm_reparaciones
+type cb_cancelar from w_abm_base`cb_cancelar within w_abm_reparaciones
 integer x = 2203
 integer y = 1064
 end type
 
-type cb_1 from w_abm_base`cb_1 within w_abm_reparaciones
+type cb_aceptar  from w_abm_base`cb_aceptar  within w_abm_reparaciones
 integer x = 2601
 integer y = 1064
 end type

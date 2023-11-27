@@ -18,12 +18,12 @@ on w_abm_proveedores.destroy
 call super::destroy
 end on
 
-type cb_2 from w_abm_base`cb_2 within w_abm_proveedores
+type cb_cancelar from w_abm_base`cb_cancelar within w_abm_proveedores
 integer x = 823
 integer y = 520
 end type
 
-type cb_1 from w_abm_base`cb_1 within w_abm_proveedores
+type cb_aceptar from w_abm_base`cb_aceptar within w_abm_proveedores
 integer x = 1221
 integer y = 520
 end type
