@@ -26,6 +26,39 @@ dw_cabecera dw_cabecera
 end type
 global w_abm_cyd_base w_abm_cyd_base
 
+forward prototypes
+public function long wf_asigna_clave ()
+end prototypes
+
+public function long wf_asigna_clave ();//asigna la clave de tipo numerico a las dw 
+string ls_column, ls_tabla, ls_query, ls_error
+long ll_i, ll_row, ll_clave, ll_ret
+datastore lds_datos
+lds_datos = create datastore
+ls_column=dw_cabecera.describe('#' + string(1) + '.name')
+ls_tabla =  f_nombre_tabla(dw_cabecera)
+ls_query = 'select max('+ ls_column+' from '+ ls_tabla
+ls_query = sqlca.syntaxfromsql( ls_query,'',ls_error)
+if len(ls_error)>0 then 
+	messagebox('Error', 'No se ha podido asignar la clave',stopsign!)
+	ll_ret = -1
+else
+	lds_datos.create(ls_query)
+	lds_datos.settransobject(SQLCA)
+	lds_datos.retrieve()
+	ll_clave = lds_datos.getitemnumber( 1,1)
+	ll_row = dw_detalle.rowcount()
+	dw_detalle.setitem(1, 1,ll_clave)
+	for ll_i = 1 to ll_row
+		dw_detalle.setitem( ll_i, 1, ll_clave)
+	next 
+	ll_ret = 1
+end if
+return ll_ret
+
+
+end function
+
 on w_abm_cyd_base.create
 int iCurrent
 call super::create
@@ -48,6 +81,23 @@ destroy(this.dw_detalle)
 destroy(this.dw_cabecera)
 end on
 
+event open;call super::open;long ll_codigo, ll_row
+string ls_codigo
+ll_codigo =  message.doubleparm
+ls_codigo = message.stringparm
+if ll_codigo>0 then 
+	ll_row = dw_cabecera.retrieve(ll_codigo)
+	if ll_row >0 then 
+		dw_detalle.retrieve(ll_codigo)
+	end if
+elseif len(ls_codigo)>0 then 
+	ll_row = dw_cabecera.retrieve(ls_codigo)
+	if ll_row>0 then 
+		dw_detalle.retrieve(ls_codigo)
+	end if
+end if
+end event
+
 type cb_2 from btn_cancelar within w_abm_cyd_base
 integer x = 1376
 integer y = 2208
@@ -60,7 +110,9 @@ integer y = 2208
 integer taborder = 30
 end type
 
-event clicked;call super::clicked;f_grabar_cabecera_detalle(dw_cabecera,dw_detalle)
+event clicked;call super::clicked;if f_validacion(dw_detalle) = 1 and f_validacion(dw_cabecera) = 1 then 
+	if wf_asigna_clave() = 1 then  f_grabar_cabecera_detalle(dw_cabecera,dw_detalle)
+end if
 end event
 
 type dw_detalle from dw_list within w_abm_cyd_base
