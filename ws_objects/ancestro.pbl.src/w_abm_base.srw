@@ -45,7 +45,7 @@ end on
 event open;call super::open;long ll_codigo
 string ls_codigo
 ls_codigo = message.stringparm
-ll_codigo = long(ls_codigo)
+ll_codigo = message.doubleparm
 if ll_codigo >0 then 
 	dw_datos.retrieve( ll_codigo)
 elseif len(ls_codigo) > 0 then 
