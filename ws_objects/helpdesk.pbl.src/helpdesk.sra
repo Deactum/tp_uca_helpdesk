@@ -99,6 +99,11 @@ event close;//*-----------------------------------------------------------------
 //*-----------------------------------------------------------------*/
 n_connectservice lnv_connectserv
 
+UPDATE USUARIOS
+SET USUARIOS_SESION = 0
+WHERE USUARIOS_CODIGO = :gs_usu_codigo
+COMMIT USING SQLCA;
+
 lnv_connectserv = Create using "n_connectservice"
 
 lnv_connectserv.of_DisconnectDB ( )
