@@ -24,6 +24,15 @@ blob iblob_imagen
 string  is_codigo
 end variables
 
+forward prototypes
+public subroutine wf_setpic ()
+end prototypes
+
+public subroutine wf_setpic ();if p_imagen.setpicture(iblob_imagen) <> 1 then
+	p_imagen.PictureName = '.\iconos\2x\baseline_person_black_48dp.png'
+end if 
+end subroutine
+
 on w_abm_usuarios.create
 int iCurrent
 call super::create
@@ -64,7 +73,7 @@ elseif len(is_codigo) > 0 then
 	
 	commit using sqlca;
 	
-	p_imagen.setpicture(iblob_imagen)
+	wf_setpic()
 		
 end if
 end event
@@ -197,11 +206,19 @@ string facename = "Tahoma"
 string text = "Subir imagen"
 end type
 
-event clicked;string ls_pathname, ls_filename
+event clicked;ContextKeyword lcx_key
+string ls_values[]
+string ls_pathname, ls_filename, ls_desktop
 integer i_getfileopenname, i_fileopen
-
 string ls_defaulttext = 'bmp'
-string ls_filtro = 'Archivo JPEG(*.jpeg),*.jpeg, Archivos GIFs(*.gif), *.gif, Mapa de Bits(*.bmp), *.bmp, todos, *.*'
+string ls_filtro = 'Archivo JPEG(*.jpeg),*.jpeg, Archivos GIFs(*.gif), *.gif, Mapa de Bits(*.bmp), *.bmp, Todos, *.*'
+
+// obtiene el path del escritorio
+GetContextService ('Keyword', lcx_key)
+lcx_key.GetContextKeywords ('USERPROFILE', ls_values)
+ls_desktop = ls_values[1] + '\Desktop'
+
+ChangeDirectory(ls_desktop)
 
 i_getfileopenname = getfileopenname('abrir mapa de bits', ls_pathname, ls_filename,ls_defaulttext,ls_filtro)
 
@@ -210,7 +227,7 @@ if i_getfileopenname = 1 then
 	if i_fileopen <> -1 then
 		filereadex(i_fileopen, iblob_imagen)
 		if IsNull(iblob_imagen) then messagebox('Advertencia', 'Blob nulo')
-		p_imagen.setpicture(iblob_imagen)
+		wf_setpic()
 		fileclose(i_fileopen)
 	else 
 		messagebox('error', 'error al leer el fichero', Stopsign!)
@@ -220,5 +237,7 @@ else
 		messagebox('error', 'getfileopenname=-1', Stopsign!)
 	end if
 end if 
+ChangeDirectory ( _path )
+
 end event
 
