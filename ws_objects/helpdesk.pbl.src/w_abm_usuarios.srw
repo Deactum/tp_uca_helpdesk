@@ -178,6 +178,10 @@ string facename = "Tahoma"
 string text = "Dar de Baja"
 end type
 
+event clicked;dw_datos.SetItem(1, 'usuarios_activo', 0)
+cb_aceptar.event clicked()
+end event
+
 type p_imagen from picture within w_abm_usuarios
 integer x = 1673
 integer y = 40
