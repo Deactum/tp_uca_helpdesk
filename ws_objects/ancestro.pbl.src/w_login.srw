@@ -161,6 +161,15 @@ else
 	p_pass.visible = false
 end if
 
+SELECT USUARIOS_ACTIVO
+INTO :il_return
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :ls_user
+COMMIT USING SQLCA;
+
+if il_return = 0 then return
+il_return = 0
+
 SELECT CASE WHEN USUARIOS_CONTRASENA = :ls_pass THEN 0 ELSE 1 END AS OK_PASS
 INTO :il_return
 FROM USUARIOS
@@ -202,7 +211,6 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
-string text = "123"
 boolean border = false
 boolean password = true
 borderstyle borderstyle = stylelowered!
@@ -246,7 +254,6 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
-string text = "GG"
 boolean border = false
 borderstyle borderstyle = stylelowered!
 string placeholder = "Usuario"
