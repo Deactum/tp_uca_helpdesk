@@ -74,7 +74,8 @@ st_usuario.text = ls_apellido + ', ' + ls_nombre
 // construye el menu
 of_set_menu(0,'Inicio','tab_inicio','baseline_home_white_48dp.png') 
 ll_padre = of_set_menu(0,'Reparaciones','baseline_construction_white_48dp.png') //nodo padre
-	of_set_menu(ll_padre,'Clientes','tab_clientes','baseline_person_white_48dp.png') //nodo hijo 										// comentar
+	//of_set_menu(ll_padre,'Clientes','tab_clientes','baseline_person_white_48dp.png') //nodo hijo 										// comentar
+	of_set_menu(ll_padre,'Clientes','baseline_person_white_48dp.png') //nodo hijo 										// comentar
 	of_set_menu(ll_padre,'Reparaciones','tab_reparaciones','baseline_construction_white_48dp.png')
 	of_set_menu(ll_padre,'Base de Conocimientos','baseline_school_white_48dp.png')
 ll_padre = of_set_menu(0,'Depósito','baseline_inventory_white_48dp.png')
