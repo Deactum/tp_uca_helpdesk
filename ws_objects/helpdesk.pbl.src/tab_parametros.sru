@@ -7,6 +7,7 @@ end forward
 global type tab_parametros from uo_grilla_base
 integer width = 3712
 string is_titulo = "Parámetros"
+string is_abm = "w_abm_parametros"
 end type
 global tab_parametros tab_parametros
 
