@@ -16,13 +16,12 @@ powerobject g_object
 string gs_usu_codigo
 string _path
 
-boolean gb_gerente
-boolean gb_encargado_tienda
-boolean gb_tecnico_supervisor
-boolean gb_tecnico
+boolean gb_gerente = False
+boolean gb_encargado_tienda = False
+boolean gb_tecnico_supervisor = False
+boolean gb_tecnico = False
 
 end variables
-
 global type helpdesk from application
 string appname = "helpdesk"
 string themepath = ".\theme190"
