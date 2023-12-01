@@ -1,0 +1,102 @@
+﻿$PBExportHeader$m_menu_componentes.srm
+forward
+global type m_menu_componentes from m_menu_grilla
+end type
+type m_ajustarcantidad from menu within m_principal
+end type
+type m_principal from m_menu_grilla`m_principal within m_menu_componentes
+m_ajustarcantidad m_ajustarcantidad
+end type
+end forward
+
+global type m_menu_componentes from m_menu_grilla
+end type
+global m_menu_componentes m_menu_componentes
+
+on m_menu_componentes.create
+m_menu_componentes=this
+call super::create
+end on
+
+on m_menu_componentes.destroy
+call super::destroy
+end on
+
+type m_principal from m_menu_grilla`m_principal within m_menu_componentes
+m_ajustarcantidad m_ajustarcantidad
+end type
+
+on m_principal.create
+call super::create
+this.m_ajustarcantidad=create m_ajustarcantidad
+this.Item[UpperBound(this.Item)+1]=this.m_ajustarcantidad
+end on
+
+on m_principal.destroy
+call super::destroy
+destroy(this.m_ajustarcantidad)
+end on
+
+type m_0 from m_menu_grilla`m_0 within m_principal
+end type
+
+on m_0.create
+call super::create
+end on
+
+on m_0.destroy
+call super::destroy
+end on
+
+type m_editar from m_menu_grilla`m_editar within m_principal
+end type
+
+on m_editar.create
+call super::create
+end on
+
+on m_editar.destroy
+call super::destroy
+end on
+
+type m_actualizar from m_menu_grilla`m_actualizar within m_principal
+end type
+
+on m_actualizar.create
+call super::create
+end on
+
+on m_actualizar.destroy
+call super::destroy
+end on
+
+type m_ajustarcantidad from menu within m_principal
+end type
+
+on m_ajustarcantidad.create
+call super::create
+this.text = "Ajustar Cantidad"
+this.menuimage = ".\iconos\png\editar_2.png"
+this.menustyle = contemporarymenu!
+this.menutextcolor = 134217735
+this.menubackcolor = 134217732
+this.menuhighlightcolor = 134217741
+this.textsize = -8
+this.weight = 400
+this.facename = "Tahoma"
+this.titlebackcolor = 134217730
+this.bitmapbackcolor = 67108864
+this.menubitmaps = true
+this.toolbarstyle = contemporarytoolbar!
+this.toolbartextcolor = 134217746
+this.toolbarbackcolor = 67108864
+this.toolbarhighlightcolor = 134217741
+end on
+
+on m_ajustarcantidad.destroy
+call super::destroy
+end on
+
+event clicked;parent.triggerevent('ue_ajuste')
+end event
+
