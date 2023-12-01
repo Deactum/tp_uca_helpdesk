@@ -7,6 +7,7 @@ end forward
 global type tab_componentes from uo_grilla_base
 integer width = 4174
 string is_titulo = "Componentes"
+string is_abm = "w_abm_componentes"
 end type
 global tab_componentes tab_componentes
 
