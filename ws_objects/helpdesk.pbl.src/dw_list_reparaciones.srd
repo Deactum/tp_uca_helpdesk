@@ -38,14 +38,17 @@ FROM REPARACIONES R
 JOIN CLIENTES C ON R.CLIENTES_CODIGO = C.CLIENTES_CODIGO
 JOIN EQUIPOS EQ ON R.EQUIPOS_CODIGO = EQ.EQUIPOS_CODIGO
 JOIN USUARIOS USU ON R.USUARIOS_CODIGO = USU.USUARIOS_CODIGO	
-WHERE  R.USUARIOS_CODIGO =	:cod_usu AND
-			R.REPARACIONES_CODIGO LIKE :BUSQUEDA OR
+WHERE ('no' = :has_arg OR  R.USUARIOS_CODIGO = :cod_usu) AND
+			(R.REPARACIONES_CODIGO LIKE :BUSQUEDA OR
 				 C.CLIENTES_NOMBRE LIKE :BUSQUEDA OR
 				 C.CLIENTES_APELLIDO LIKE :BUSQUEDA OR
- 				EQ.EQUIPOS_DESCRIPCION LIKE :BUSQUEDA 
+				EQ.EQUIPOS_MARCA LIKE :BUSQUEDA OR
+			 	EQ.EQUIPOS_MODELO LIKE :BUSQUEDA OR
+				USU.USUARIOS_APELLIDO LIKE :BUSQUEDA OR
+			 	USU.USUARIOS_NOMBRE LIKE :BUSQUEDA)
 ORDER BY 1 DESC
 OFFSET @SALTAR ROWS
-FETCH NEXT @REGISTROS ROWS ONLY" arguments=(("pagina", number),("registros", number),("busqueda", string),("cod_usu", string)) )
+FETCH NEXT @REGISTROS ROWS ONLY" arguments=(("pagina", number),("registros", number),("busqueda", string),("cod_usu", string),("has_arg", string)) )
 text(band=header alignment="2" text="Código" border="0" color="33554432" x="9" y="8" height="64" width="279" html.valueishtml="0"  name=reparaciones_reparaciones_codigo_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Cliente" border="0" color="33554432" x="297" y="8" height="64" width="736" html.valueishtml="0"  name=cliente_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 text(band=header alignment="2" text="Técnico" border="0" color="33554432" x="1742" y="4" height="64" width="672" html.valueishtml="0"  name=tecnico_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
