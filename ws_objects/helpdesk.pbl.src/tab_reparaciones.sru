@@ -25,6 +25,34 @@ end type
 type uo_control from uo_grilla_base`uo_control within tab_reparaciones
 end type
 
+event uo_control::ue_actualizar;// Ancestro anulado
+
+string ls_busquda, ls_has_arg
+
+ls_has_arg = 'yes'
+
+if gb_tecnico_supervisor then ls_has_arg = 'no'
+
+dw_datos.retrieve(get_pagina(), get_registros(), get_busqueda(), gs_usu_codigo, ls_has_arg)
+of_mensaje_paginacion()
+
+end event
+
+event uo_control::ue_editar;// Ancestro anulado
+string ls_parm
+window w_to_open
+
+ls_parm = string(f_datatype(dw_datos,1)) +','+ 'yes'
+
+try 
+	openwithparm(w_to_open, ls_parm,is_abm)
+	this.event ue_actualizar( )
+catch (runtimeerror e)
+	messagebox('Error',e.getmessage() )
+end try
+
+end event
+
 type st_pagina from uo_grilla_base`st_pagina within tab_reparaciones
 end type
 
