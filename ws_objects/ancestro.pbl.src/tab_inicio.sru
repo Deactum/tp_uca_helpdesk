@@ -17,7 +17,7 @@ end type
 end forward
 
 global type tab_inicio from uo_tab
-integer width = 4297
+integer width = 4279
 integer height = 2252
 string text = "Inicio"
 string picturename = ".\iconos\1x\baseline_home_black_18dp.png"
@@ -47,6 +47,7 @@ end event
 
 public subroutine of_actualizar_graficos ();ids_datos1.retrieve()
 wb_1.of_init(ids_datos1)
+wb_3.of_init(ids_datos1)
 end subroutine
 
 on tab_inicio.create
@@ -126,6 +127,9 @@ string is_style = "pie"
 string is_title = ""
 boolean ib_toolbox = false
 boolean ib_legend = false
+boolean ib_preview = false
+boolean ib_auto_sort = false
+boolean ib_sort_asc = false
 long il_width = 100
 long il_height = 100
 end type

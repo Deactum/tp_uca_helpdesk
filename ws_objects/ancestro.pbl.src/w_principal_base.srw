@@ -141,7 +141,7 @@ event resize;event ue_resize()
 end event
 
 event open;uo_2.event ue_clicked()
-timer(10)
+timer(60)
 end event
 
 event timer;tab_principal.Control[1].triggerevent('ue_actualizar')
