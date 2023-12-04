@@ -17,11 +17,22 @@ long backcolor = 67108864
 string text = "none"
 long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
+event ue_init ( )
 st_2 st_2
 st_1 st_1
 p_1 p_1
 end type
 global uo_tarjet_base uo_tarjet_base
+
+forward prototypes
+public subroutine of_refresh ()
+end prototypes
+
+event ue_init();of_refresh()
+end event
+
+public subroutine of_refresh ();
+end subroutine
 
 on uo_tarjet_base.create
 this.st_2=create st_2
@@ -37,6 +48,9 @@ destroy(this.st_2)
 destroy(this.st_1)
 destroy(this.p_1)
 end on
+
+event constructor;post event ue_init()
+end event
 
 type st_2 from statictext within uo_tarjet_base
 integer x = 663
@@ -76,7 +90,6 @@ end type
 type p_1 from picture within uo_tarjet_base
 integer width = 439
 integer height = 384
-boolean originalsize = true
 string picturename = ".\iconos\2x\baseline_person_white_48dp.png"
 boolean focusrectangle = false
 end type

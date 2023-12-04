@@ -141,6 +141,10 @@ event resize;event ue_resize()
 end event
 
 event open;uo_2.event ue_clicked()
+timer(10)
+end event
+
+event timer;tab_principal.Control[1].triggerevent('ue_actualizar')
 end event
 
 type mdi_1 from mdiclient within w_principal_base
@@ -314,3 +318,4 @@ end type
 on uo_barra.destroy
 call uo_barra_inferior::destroy
 end on
+
