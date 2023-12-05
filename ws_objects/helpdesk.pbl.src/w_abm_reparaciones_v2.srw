@@ -168,6 +168,8 @@ global w_abm_reparaciones_v2 w_abm_reparaciones_v2
 
 type variables
 long il_codigo
+string is_codigo
+boolean ibool_insert = false
 
 long il_red = 28553471
 long il_green = 12639424
@@ -177,14 +179,52 @@ long il_gray = 134217728
 end variables
 
 forward prototypes
-public function integer wf_refresh_proveedores (integer al_proveedor)
 public subroutine wf_get_codigo ()
+public function integer wf_cambiar_estado (long al_estado, long al_motivo, string as_estado)
+public function integer wf_refresh_dddw (string as_name, integer ai_data)
 end prototypes
 
-public function integer wf_refresh_proveedores (integer al_proveedor);DatawindowChild ldwC_proveedores
+public subroutine wf_get_codigo ();SELECT TOP 1 REPARACIONES_CODIGO
+INTO :il_codigo
+FROM REPARACIONES
+ORDER BY REPARACIONES_CODIGO DESC
+COMMIT USING SQLCA;
+
+il_codigo += 1
+end subroutine
+
+public function integer wf_cambiar_estado (long al_estado, long al_motivo, string as_estado);string ls_repa_codigo
+datastore lds_estados
+
+if al_estado <> 1 then
+	if messagebox('Atencion!', 'Esta seguro que desea cambiar el estado a '+as_estado+'?', Question!, YesNo!) <> 1 then return -1
+end if
+
+lds_estados = Create datastore
+lds_estados.DataObject = 'dw_ds_reparaciones_estados'
+lds_estados.SetTransObject(SQLCA)
+
+lds_estados.Reset()
+lds_estados.InsertRow(0)
+lds_estados.SetItem(1, 'reparaciones_codigo', il_codigo)
+lds_estados.SetItem(1, 'estados_codigo', al_estado)
+lds_estados.SetItem(1, 'moti_trans_codigo', al_motivo)
+
+
+lds_estados.AcceptText()
+
+if lds_estados.Update(True, False) = 1 then
+	COMMIT USING SQLCA;
+	return 0
+end if 
+ROLLBACK USING SQLCA;
+return -1
+end function
+
+public function integer wf_refresh_dddw (string as_name, integer ai_data);DatawindowChild ldwC_proveedores
 
 // se refresca la dddw para que aparezca el proveedor
-dw_cabecera.GetChild('proveedores_codigo', ldwC_proveedores)
+dw_cabecera.GetChild( as_name, ldwC_proveedores)
 ldwC_proveedores.SetTransObject(SQLCA)
 
 if ldwC_proveedores.Retrieve() < 0 then
@@ -193,20 +233,11 @@ if ldwC_proveedores.Retrieve() < 0 then
 end if
 COMMIT USING SQLCA;
 
-dw_cabecera.SetItem(1, 'proveedores_codigo', al_proveedor)
+dw_cabecera.SetItem(1, as_name, ai_data)
 dw_cabecera.enabled = true
 
 return 0
 end function
-
-public subroutine wf_get_codigo ();SELECT TOP 1 COMPRAS_CODIGO
-INTO :il_codigo
-FROM COMPRAS
-ORDER BY COMPRAS_CODIGO DESC
-COMMIT USING SQLCA;
-
-il_codigo += 1
-end subroutine
 
 on w_abm_reparaciones_v2.create
 int iCurrent
@@ -231,7 +262,7 @@ destroy(this.tab_detalles)
 end on
 
 event open;//ancestro anulado
-long ll_codigo, ll_row, ll_aux, ll_cliente, ll_equipo
+long ll_codigo, ll_row, ll_aux, ll_cliente, ll_equipo, ll_estado
 string ls_codigo, ls_aux
 
 ls_aux = message.stringparm
@@ -240,31 +271,45 @@ ll_aux = pos(ls_aux, ',') - 1
 
 ls_codigo = mid(ls_aux, 1, ll_aux)
 
-if mid(ls_codigo, ll_aux) = 'yes' then dw_cabecera.modify('usuarios_codigo.protected=true')
+if not gb_tecnico_supervisor then dw_cabecera.modify('usuarios_codigo.protect=true')
 
-if ll_codigo>0 then 
-	ll_row = dw_cabecera.retrieve(ll_codigo)
-	
-	if ll_row >0 then 
-		dw_detalle.retrieve(ll_codigo)
-	end if
-	
-elseif len(ls_codigo)>0 then 
+
+if len(ls_codigo)>0 then 
 	ll_row = dw_cabecera.retrieve(ls_codigo)
 	
 	if ll_row>0 then 
-		dw_detalle.retrieve(ls_codigo)
+		is_codigo = ls_codigo
+		il_codigo = long(ls_codigo)
+		if dw_detalle.retrieve(ls_codigo) = 0 then dw_detalle.insertrow(0) 
 		ll_cliente = dw_cabecera.GetItemNumber(1, 'clientes_codigo')
 		ll_equipo = dw_cabecera.GetItemNumber(1, 'equipos_codigo')
 		
 		tab_detalles.tabpage_info.dw_cliente.Retrieve(ll_cliente)
 		tab_detalles.tabpage_info.dw_equipo.Retrieve(ll_equipo)
-		
-		
-		
 	end if
 	
+else
+	ibool_insert = true
+	tab_detalles.SelectedTab = 2
+	tab_detalles.tabpage_estados.visible = false
+	dw_cabecera.modify('soluciones_descripcion.protect=true')
+	dw_cabecera.SetItem(1, 'usuarios_codigo', gs_usu_codigo)
 end if
+
+if not ibool_insert then 
+	dw_cabecera.modify('reparaciones_costo.protect=true')
+end if
+
+SELECT TOP 1 ESTADOS_CODIGO
+into :ll_estado
+FROM REPARACIONES_ESTADOS
+WHERE REPARACIONES_CODIGO = :il_codigo
+ORDER BY REPA_ESTA_FECHA DESC
+COMMIT USING SQLCA;
+
+tab_detalles.tabpage_estados.event ue_select_estado(ll_estado)
+
+
 end event
 
 type cb_2 from w_abm_cyd_base`cb_2 within w_abm_reparaciones_v2
@@ -281,7 +326,6 @@ end type
 event cb_1::clicked;// ancestro anulado
 long ll_counter
 long ll_inserted
-datastore lds_componentes
 
 long ll_codigo
 string ls_sk
@@ -289,71 +333,73 @@ string ls_nombre
 long ll_cantidad
 long ll_precio
 
+il_codigo = dw_cabecera.GetItemNumber(1, 'reparaciones_codigo')
+
+if ibool_insert then 
+	wf_get_codigo()
+	dw_cabecera.SetItem(1, 'reparaciones_codigo', il_codigo)
+end if 
+
+dw_cabecera.AcceptText()
 dw_detalle.AcceptText()
-
-wf_get_codigo()
-
-// se copia el total a la cabeza
-dw_cabecera.SetItem(1, 'compras_monto', dw_detalle.GetItemNumber(1, 'c_gran_total'))
-dw_cabecera.SetItem(1, 'compras_codigo', string(il_codigo))
-
-lds_componentes = Create datastore
-lds_componentes.DataObject = 'dw_ds_componentes'
-lds_componentes.SetTransObject(SQLCA)
 
 // recorre todas las filas limpiando la basura (campos incompletos) y
 // aquellas que tengan 0 como codigo de item, inserta y pone el codigo retornado en el componente codigo
 for ll_counter = dw_detalle.RowCount() to 1 step -1
-	dw_detalle.SetItem(ll_counter, 'compras_codigo', string(il_codigo))
+	dw_detalle.SetItem(ll_counter, 'reparaciones_componentes_reparaciones_codigo', il_codigo)
 	
-	ll_codigo =		dw_detalle.GetItemNumber(ll_counter, 'componentes_codigo')
-	ls_sk = 			dw_detalle.GetItemString(ll_counter, 'componentes_componentes_sk')
-	ls_nombre =	dw_detalle.GetItemString(ll_counter, 'componentes_componentes_nombre')
-	ll_cantidad = 	dw_detalle.GetItemNumber(ll_counter, 'compo_compr_cantidad')
-	ll_precio =		dw_detalle.GetItemNumber(ll_counter, 'compo_compr_precio_compra')
-	
-	if isNull(ll_codigo) or isNull(ls_sk) or isNull(ll_cantidad) or isNull(ll_precio) then
-		dw_detalle.DeleteRow(ll_counter)
-	elseif trim(ls_sk, true) = '' or ll_cantidad = 0 or ll_precio = 0 then
-		dw_detalle.DeleteRow(ll_counter)
-	elseif ll_codigo = 0 and isNull(ls_nombre) then 
-		dw_detalle.DeleteRow(ll_counter)
-	elseif ll_codigo = 0 then
-		lds_componentes.Reset()
-		lds_componentes.InsertRow(0)
-		lds_componentes.SetItem(1, 'componentes_nombre', ls_nombre)
-		lds_componentes.SetItem(1, 'componentes_sk', ls_sk)
-		
-		lds_componentes.AcceptText()
-		
-		if lds_componentes.Update(True, False) = 1 then
-			COMMIT USING SQLCA;
-			
-			SELECT TOP 1 COMPONENTES_CODIGO
-			INTO :ll_inserted		
-			FROM COMPONENTES
-			ORDER BY COMPONENTES_CODIGO DESC
-			COMMIT USING SQLCA;
-			
-			dw_detalle.SetItem(ll_counter, 'componentes_codigo', ll_inserted)
-		else 
-			dw_detalle.DeleteRow(ll_counter)
-		end if 
-		
-	end if 
+//	ll_codigo =		dw_detalle.GetItemNumber(ll_counter, 'componentes_codigo')
+//	ls_sk = 			dw_detalle.GetItemString(ll_counter, 'componentes_componentes_sk')
+//	ls_nombre =	dw_detalle.GetItemString(ll_counter, 'componentes_componentes_nombre')
+//	ll_cantidad = 	dw_detalle.GetItemNumber(ll_counter, 'compo_compr_cantidad')
+//	ll_precio =		dw_detalle.GetItemNumber(ll_counter, 'compo_compr_precio_compra')
+//	
+//	if isNull(ll_codigo) or isNull(ls_sk) or isNull(ll_cantidad) or isNull(ll_precio) then
+//		dw_detalle.DeleteRow(ll_counter)
+//	elseif trim(ls_sk, true) = '' or ll_cantidad = 0 or ll_precio = 0 then
+//		dw_detalle.DeleteRow(ll_counter)
+//	elseif ll_codigo = 0 and isNull(ls_nombre) then 
+//		dw_detalle.DeleteRow(ll_counter)
+//	elseif ll_codigo = 0 then
+//		lds_componentes.Reset()
+//		lds_componentes.InsertRow(0)
+//		lds_componentes.SetItem(1, 'componentes_nombre', ls_nombre)
+//		lds_componentes.SetItem(1, 'componentes_sk', ls_sk)
+//		
+//		lds_componentes.AcceptText()
+//		
+//		if lds_componentes.Update(True, False) = 1 then
+//			COMMIT USING SQLCA;
+//			
+//			SELECT TOP 1 COMPONENTES_CODIGO
+//			INTO :ll_inserted		
+//			FROM COMPONENTES
+//			ORDER BY COMPONENTES_CODIGO DESC
+//			COMMIT USING SQLCA;
+//			
+//			dw_detalle.SetItem(ll_counter, 'componentes_codigo', ll_inserted)
+//		else 
+//			dw_detalle.DeleteRow(ll_counter)
+//		end if 
+//		
+//	end if 
 
 next
 
-Destroy lds_componentes 
-if f_grabar_cabecera_detalle(dw_cabecera,dw_detalle) <> -1 then cb_2.event clicked()
 
+if f_grabar_cabecera_detalle(dw_cabecera,dw_detalle) <> -1 then 
+	
+	if ibool_insert then wf_cambiar_estado(1, 1, '')
+	
+	cb_2.event clicked()
+end if
 end event
 
 type dw_detalle from w_abm_cyd_base`dw_detalle within w_abm_reparaciones_v2
 integer x = 3067
-integer y = 160
+integer y = 144
 integer width = 2560
-integer height = 508
+integer height = 572
 string dataobject = "dw_abm_reparaciones_det"
 boolean vscrollbar = true
 end type
@@ -361,7 +407,7 @@ end type
 event dw_detalle::constructor;call super::constructor;DatawindowChild ldwC_componentes
 long ll_inserted
 
-this.GetChild('componentes_codigo', ldwC_componentes)
+this.GetChild('reparaciones_componentes_componentes_codigo', ldwC_componentes)
 ldwC_componentes.SetTransObject(SQLCA)
 
 if ldwC_componentes.Retrieve() < 0 then
@@ -370,22 +416,15 @@ if ldwC_componentes.Retrieve() < 0 then
 end if
 COMMIT USING SQLCA;
 
-ll_inserted = ldwC_componentes.InsertRow(0)
-ldwC_componentes.SetItem(ll_inserted, 'componentes_codigo', 0)
-ldwC_componentes.SetItem(ll_inserted, 'componentes_nombre', '(Nuevo)')
-ldwC_componentes.SetSort('componentes_codigo A')
-ldwC_componentes.AcceptText()
-ldwC_componentes.Sort()
+ldwC_componentes.SetFilter('componentes_precio_venta>0')
+ldwC_componentes.Filter()
+
+
+
 
 end event
 
-event dw_detalle::itemchanged;call super::itemchanged;if dwo.name <> 'componentes_codigo' then return
-
-
-if data = '0' then
-	This.SetColumn('componentes_componentes_nombre')
-	return
-end if 
+event dw_detalle::itemchanged;call super::itemchanged;if dwo.name <> 'reparaciones_componentes_componentes_codigo' then return
 
 datastore lds_componentes
 
@@ -397,7 +436,8 @@ if lds_componentes.Retrieve(long(data)) > 0 then
 	COMMIT USING SQLCA;
 	
 	dw_detalle.SetItem(row, 'componentes_componentes_sk', lds_componentes.GetItemString(1, 'componentes_sk'))
-	dw_detalle.SetItem(row, 'compo_compr_precio_compra', lds_componentes.GetItemNumber(1, 'componentes_precio_compra'))
+	dw_detalle.SetItem(row, 'reparaciones_componentes_repa_compo_precio_venta', lds_componentes.GetItemNumber(1, 'componentes_precio_venta'))
+	dw_detalle.SetItem(row, 'reparaciones_componentes_repa_compo_precio_compra', lds_componentes.GetItemNumber(1, 'componentes_precio_compra'))
 	
 end if 
 ROLLBACK USING SQLCA;
@@ -407,48 +447,16 @@ type dw_cabecera from w_abm_cyd_base`dw_cabecera within w_abm_reparaciones_v2
 integer x = 151
 integer y = 128
 integer width = 2688
-integer height = 1040
+integer height = 1144
 string dataobject = "dw_abm_reparaciones_v2"
+boolean border = false
 end type
-
-event dw_cabecera::buttonclicked;call super::buttonclicked;long ll_proveedor_cod
-datawindowChild ldwC_proveedores
-
-// se carga uno nuevo, que sera el de mayor numero
-if dwo.name  = 'b_new' then
-	open(dw_abm_proveedores)
-	
-	if Message.DoubleParm <> 0 then return
-
-	this.enabled = false
-
-	SELECT TOP 1 PROVEEDORES_CODIGO
-	INTO :ll_proveedor_cod
-	FROM PROVEEDORES	
-	ORDER BY PROVEEDORES_CODIGO DESC
-	COMMIT USING SQLCA;
-	
-	if wf_refresh_proveedores(ll_proveedor_cod) = -1 then return
-	
-end if 
-
-if dwo.name  = 'b_edit' then
-	ll_proveedor_cod = this.GetItemNumber(1, 'proveedores_codigo')
-	
-	openWithParm(dw_abm_proveedores, string(ll_proveedor_cod))
-	
-	this.enabled = false
-	
-	if wf_refresh_proveedores(ll_proveedor_cod) = -1 then return
-	
-end if 
-end event
 
 type gb_repa from groupbox within w_abm_reparaciones_v2
 integer x = 32
 integer y = 24
 integer width = 2885
-integer height = 1176
+integer height = 1288
 integer taborder = 30
 integer textsize = -16
 integer weight = 700
@@ -463,9 +471,9 @@ end type
 
 type gb_problema from groupbox within w_abm_reparaciones_v2
 integer x = 2976
-integer y = 780
+integer y = 800
 integer width = 2720
-integer height = 444
+integer height = 512
 integer taborder = 130
 integer textsize = -16
 integer weight = 700
@@ -528,6 +536,8 @@ destroy(this.tabpage_info)
 end on
 
 type tabpage_estados from userobject within tab_detalles
+event ue_select_estado ( integer ai_estado )
+event ue_clicked ( string as_bt )
 integer x = 18
 integer y = 116
 integer width = 5623
@@ -572,6 +582,187 @@ r_current r_current
 ln_bot_2 ln_bot_2
 ln_top_ok_2 ln_top_ok_2
 end type
+
+event ue_select_estado(integer ai_estado);// Se selecciona el boton
+Choose case ai_estado
+	case 1
+		pb_a.enabled = true
+	case 2
+		r_current.event ue_select(pb_a.X, pb_a.Y, 'pb_a')
+	case 3
+		r_current.event ue_select(pb_b.X, pb_b.Y, 'pb_b')
+	case 4
+		r_current.event ue_select(pb_c.X, pb_c.Y, 'pb_c')
+	case 5
+		r_current.event ue_select(pb_c_1.X, pb_c_1.Y, 'pb_c_1')
+	case 6
+		r_current.event ue_select(pb_c_2.X, pb_c_2.Y, 'pb_c_2')
+	case 7
+		r_current.event ue_select(pb_d.X, pb_d.Y, 'pb_d')
+	case 8
+		r_current.event ue_select(pb_e.X, pb_e.Y, 'pb_e')
+	case 9
+		r_current.event ue_select(pb_f.X, pb_f.Y, 'pb_f')
+end choose
+
+end event
+
+event ue_clicked(string as_bt);Choose case as_bt
+	case 'pb_a'
+		ln_a.LineColor = il_green
+		ln_a_2.LineColor = il_red
+
+		pb_b.enabled = true
+		pb_a_2.enabled = true
+		
+	case 'pb_a_2'
+		ln_a.LineColor = il_gray
+		ln_a_2.LineColor = il_gray
+		
+		ln_a_2_exit.LineColor = il_red
+		ln_bot_2.LineColor = il_red
+		ln_bot_1.LineColor = il_red
+		ln_e_bot.LineColor = il_red
+		
+		pb_b.enabled = false
+		pb_a.enabled = false
+		pb_e.enabled = true
+
+	case 'pb_b'
+		ln_b.LineColor = il_green
+		ln_b_2.LineColor = il_red
+		
+		pb_a.enabled = false
+		pb_a_2.enabled = false
+		pb_c.enabled = true
+		pb_b_2.enabled = true
+		
+		ln_a.LineColor = il_gray
+		ln_a_2.LineColor = il_gray
+		
+	case 'pb_b_2'
+		ln_b.LineColor = il_gray
+		ln_b_2.LineColor = il_gray
+		
+		ln_b_2_exit.LineColor = il_red
+		ln_bot_1.LineColor = il_red
+		ln_e_bot.LineColor = il_red
+		
+		pb_b.enabled = false
+		pb_c.enabled = false
+		pb_e.enabled = true
+
+	case 'pb_c'
+		ln_c.LineColor = il_green
+		ln_c_1.LineColor = il_yellow
+		ln_c_2.LineColor = il_yellow
+		
+		ln_b.LineColor = il_gray
+		ln_b_2.LineColor = il_gray
+		
+		ln_d.LineColor = il_gray
+		ln_d_2.LineColor = il_gray
+		ln_d_3.LineColor = il_gray
+		ln_d_4.LineColor = il_gray
+		
+		ln_top_ok_1.LineColor = il_gray
+		ln_c_top.LineColor = il_gray
+		ln_c_1_top.LineColor = il_gray
+		
+		ln_top_ok_2.LineColor = il_gray
+		ln_c_2_top.LineColor = il_gray
+		
+		ln_c_2_exit.LineColor = il_gray
+		ln_e_top.LineColor = il_gray
+		
+		pb_b.enabled = false
+		pb_b_2.enabled = false
+		pb_d.enabled = true
+		pb_c_1.enabled = true
+		pb_c_2.enabled = true
+		pb_e.enabled = false
+
+	case 'pb_c_1'
+		ln_c.LineColor = il_gray
+		ln_c_1.LineColor = il_gray
+		ln_c_2.LineColor = il_gray
+		
+		ln_top_ok_1.LineColor = il_green
+		ln_c_top.LineColor = il_green
+		ln_c_1_top.LineColor = il_green
+		
+		
+		pb_d.enabled = false
+		pb_c_2.enabled = false
+		pb_e.enabled = false
+
+	case 'pb_c_2'
+		ln_c.LineColor = il_gray
+		ln_c_1.LineColor = il_gray
+		ln_c_2.LineColor = il_gray
+		
+		ln_top_ok_1.LineColor = il_green
+		ln_top_ok_2.LineColor = il_green
+		ln_c_top.LineColor = il_green
+		ln_c_2_top.LineColor = il_green
+		
+		ln_c_2_exit.LineColor = il_red
+		ln_e_top.LineColor = il_red
+		
+		pb_d.enabled = false
+		pb_c_1.enabled = false
+		pb_e.enabled = true
+
+	case 'pb_d'
+		ln_c.LineColor = il_gray
+		ln_c_1.LineColor = il_gray
+		ln_c_2.LineColor = il_gray
+		
+		ln_d.LineColor = il_green
+		ln_d_2.LineColor = il_green
+		ln_d_3.LineColor = il_green
+		ln_d_4.LineColor = il_green
+		
+		
+		pb_c_1.enabled = false
+		pb_c_2.enabled = false
+		pb_e.enabled = true
+
+	case 'pb_e'
+		ln_a_2_exit.LineColor = il_gray
+		ln_bot_1.LineColor = il_gray
+		ln_bot_2.LineColor = il_gray
+		ln_e_bot.LineColor = il_gray
+		
+		ln_d.LineColor = il_gray
+		ln_d_2.LineColor = il_gray
+		ln_d_3.LineColor = il_gray
+		ln_d_4.LineColor = il_gray
+		
+		ln_top_ok_1.LineColor = il_gray
+		ln_top_ok_2.LineColor = il_gray
+		ln_c_top.LineColor = il_gray
+		ln_c_2_top.LineColor = il_gray
+		
+		ln_c_2_exit.LineColor = il_gray
+		ln_e_top.LineColor = il_gray
+		
+		ln_e.LineColor = il_green
+		
+		pb_a_2.enabled = false
+		pb_b_2.enabled = false
+		pb_c_2.enabled = false
+		pb_c.enabled = false
+		pb_d.enabled = false
+		pb_f.enabled = true
+			
+	case 'pb_f'
+		ln_e.LineColor = il_gray
+
+		pb_e.enabled = false
+
+End Choose
+end event
 
 on tabpage_estados.create
 this.ln_c_2=create ln_c_2
@@ -685,6 +876,8 @@ destroy(this.ln_top_ok_2)
 end on
 
 event constructor;
+
+
 ln_a.beginX = pb_a.X + pb_a.Width
 ln_a.beginY = (pb_a.Y + pb_a.Height/2)
 
@@ -787,9 +980,8 @@ ln_b_2_exit.endY = ln_b_2_exit.beginY + 60
 
 // ---------------
 
-ln_e_bot.beginX = pb_e.X + (pb_e.Width /2)
-ln_e_bot.beginY = pb_e.Y + pb_e.Height
-
+ln_e_bot.beginX = pb_f.X + (pb_f.Width /2)
+ln_e_bot.beginY = pb_f.Y + pb_f.Height
 ln_e_bot.endX = ln_e_bot.beginX
 ln_e_bot.endY = ln_b_2_exit.endY
 
@@ -809,9 +1001,8 @@ ln_bot_2.endY = ln_b_2_exit.endY
 
 ln_e_top.beginX = ln_e_bot.beginX
 ln_e_top.beginY = pb_c_2.Y + (pb_c_2.Height /2)
-
 ln_e_top.endX = ln_e_bot.beginX
-ln_e_top.endY = pb_e.Y
+ln_e_top.endY = pb_f.Y
 
 ln_c_2_exit.beginX = pb_c_2.X + pb_c_2.Width
 ln_c_2_exit.beginY = ln_e_top.beginY
@@ -871,8 +1062,6 @@ ln_top_ok_2.endY =  ln_top_ok_1.beginY
 
 
 
-
-
 end event
 
 type ln_c_2 from line within tabpage_estados
@@ -895,9 +1084,9 @@ end type
 
 type pb_f from picturebutton within tabpage_estados
 integer x = 5106
-integer y = 408
-integer width = 485
-integer height = 192
+integer y = 468
+integer width = 512
+integer height = 216
 integer taborder = 150
 boolean bringtotop = true
 integer textsize = -10
@@ -909,23 +1098,28 @@ string facename = "Tahoma"
 boolean enabled = false
 string text = "Cobrar"
 boolean originalsize = true
+string picturename = ".\iconos\png\greenButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = vcenter!
 long backcolor = 12639424
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 9, 1, This.text) <> 0 then return
 
-ln_e.LineColor = il_gray
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-pb_e.enabled = false
+//ln_e.LineColor = il_gray
+//
+//pb_e.enabled = false
 
 end event
 
 type pb_e from picturebutton within tabpage_estados
 integer x = 4475
-integer y = 408
-integer width = 485
-integer height = 192
+integer y = 468
+integer width = 512
+integer height = 216
 integer taborder = 140
 boolean bringtotop = true
 integer textsize = -10
@@ -936,40 +1130,43 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 boolean enabled = false
 string text = "Listo para retirar"
-boolean originalsize = true
+string picturename = ".\iconos\png\greenButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
 long backcolor = 12639424
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 8, 1, This.text) <> 0 then return
 
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-ln_a_2_exit.LineColor = il_gray
-ln_bot_1.LineColor = il_gray
-ln_bot_2.LineColor = il_gray
-ln_e_bot.LineColor = il_gray
-
-ln_d.LineColor = il_gray
-ln_d_2.LineColor = il_gray
-ln_d_3.LineColor = il_gray
-ln_d_4.LineColor = il_gray
-
-ln_top_ok_1.LineColor = il_gray
-ln_top_ok_2.LineColor = il_gray
-ln_c_top.LineColor = il_gray
-ln_c_2_top.LineColor = il_gray
-
-ln_c_2_exit.LineColor = il_gray
-ln_e_top.LineColor = il_gray
-
-ln_e.LineColor = il_green
-
-pb_a_2.enabled = false
-pb_b_2.enabled = false
-pb_c_2.enabled = false
-pb_c.enabled = false
-pb_d.enabled = false
-pb_f.enabled = true
+//ln_a_2_exit.LineColor = il_gray
+//ln_bot_1.LineColor = il_gray
+//ln_bot_2.LineColor = il_gray
+//ln_e_bot.LineColor = il_gray
+//
+//ln_d.LineColor = il_gray
+//ln_d_2.LineColor = il_gray
+//ln_d_3.LineColor = il_gray
+//ln_d_4.LineColor = il_gray
+//
+//ln_top_ok_1.LineColor = il_gray
+//ln_top_ok_2.LineColor = il_gray
+//ln_c_top.LineColor = il_gray
+//ln_c_2_top.LineColor = il_gray
+//
+//ln_c_2_exit.LineColor = il_gray
+//ln_e_top.LineColor = il_gray
+//
+//ln_e.LineColor = il_green
+//
+//pb_a_2.enabled = false
+//pb_b_2.enabled = false
+//pb_c_2.enabled = false
+//pb_c.enabled = false
+//pb_d.enabled = false
+//pb_f.enabled = true
 
 
 
@@ -983,9 +1180,9 @@ end event
 
 type pb_d from picturebutton within tabpage_estados
 integer x = 3845
-integer y = 408
-integer width = 485
-integer height = 192
+integer y = 468
+integer width = 512
+integer height = 216
 integer taborder = 130
 boolean bringtotop = true
 integer textsize = -10
@@ -997,35 +1194,39 @@ string facename = "Tahoma"
 boolean enabled = false
 string text = "Iniciar pruebas"
 boolean originalsize = true
+string picturename = ".\iconos\png\greenButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = vcenter!
 long backcolor = 12639424
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 7, 1, 'en pruebas') <> 0 then return
 
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-ln_c.LineColor = il_gray
-ln_c_1.LineColor = il_gray
-ln_c_2.LineColor = il_gray
-
-ln_d.LineColor = il_green
-ln_d_2.LineColor = il_green
-ln_d_3.LineColor = il_green
-ln_d_4.LineColor = il_green
-
-
-pb_c_1.enabled = false
-pb_c_2.enabled = false
-pb_e.enabled = true
-
+//ln_c.LineColor = il_gray
+//ln_c_1.LineColor = il_gray
+//ln_c_2.LineColor = il_gray
+//
+//ln_d.LineColor = il_green
+//ln_d_2.LineColor = il_green
+//ln_d_3.LineColor = il_green
+//ln_d_4.LineColor = il_green
+//
+//
+//pb_c_1.enabled = false
+//pb_c_2.enabled = false
+//pb_e.enabled = true
+//
 
 end event
 
 type pb_c_2 from picturebutton within tabpage_estados
 integer x = 3186
-integer y = 172
-integer width = 485
-integer height = 192
+integer y = 208
+integer width = 512
+integer height = 216
 integer taborder = 120
 boolean bringtotop = true
 integer textsize = -10
@@ -1037,37 +1238,42 @@ string facename = "Tahoma"
 boolean enabled = false
 string text = "Enviar a soporte externo"
 boolean originalsize = true
+string picturename = ".\iconos\png\yellowButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
 long backcolor = 28573176
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 6, 1, 'en soporte externo') <> 0 then return
+
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
 // il_green il_yellow il_gray il_red
 
-ln_c.LineColor = il_gray
-ln_c_1.LineColor = il_gray
-ln_c_2.LineColor = il_gray
-
-ln_top_ok_1.LineColor = il_green
-ln_top_ok_2.LineColor = il_green
-ln_c_top.LineColor = il_green
-ln_c_2_top.LineColor = il_green
-
-ln_c_2_exit.LineColor = il_red
-ln_e_top.LineColor = il_red
-
-pb_d.enabled = false
-pb_c_1.enabled = false
-pb_e.enabled = true
+//ln_c.LineColor = il_gray
+//ln_c_1.LineColor = il_gray
+//ln_c_2.LineColor = il_gray
+//
+//ln_top_ok_1.LineColor = il_green
+//ln_top_ok_2.LineColor = il_green
+//ln_c_top.LineColor = il_green
+//ln_c_2_top.LineColor = il_green
+//
+//ln_c_2_exit.LineColor = il_red
+//ln_e_top.LineColor = il_red
+//
+//pb_d.enabled = false
+//pb_c_1.enabled = false
+//pb_e.enabled = true
 
 end event
 
 type pb_c_1 from picturebutton within tabpage_estados
 integer x = 2629
-integer y = 172
-integer width = 485
-integer height = 192
+integer y = 208
+integer width = 512
+integer height = 216
 integer taborder = 110
 boolean bringtotop = true
 integer textsize = -10
@@ -1079,34 +1285,39 @@ string facename = "Tahoma"
 boolean enabled = false
 string text = "Pausar"
 boolean originalsize = true
+string picturename = ".\iconos\png\yellowButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = vcenter!
 long backcolor = 28573176
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 5, 1, 'pausado') <> 0 then return
+
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
 // il_green il_yellow il_gray
 
-ln_c.LineColor = il_gray
-ln_c_1.LineColor = il_gray
-ln_c_2.LineColor = il_gray
-
-ln_top_ok_1.LineColor = il_green
-ln_c_top.LineColor = il_green
-ln_c_1_top.LineColor = il_green
-
-
-pb_d.enabled = false
-pb_c_2.enabled = false
-pb_e.enabled = false
+//ln_c.LineColor = il_gray
+//ln_c_1.LineColor = il_gray
+//ln_c_2.LineColor = il_gray
+//
+//ln_top_ok_1.LineColor = il_green
+//ln_c_top.LineColor = il_green
+//ln_c_1_top.LineColor = il_green
+//
+//
+//pb_d.enabled = false
+//pb_c_2.enabled = false
+//pb_e.enabled = false
 
 end event
 
 type pb_c from picturebutton within tabpage_estados
 integer x = 2075
-integer y = 408
-integer width = 485
-integer height = 192
+integer y = 468
+integer width = 512
+integer height = 216
 integer taborder = 80
 boolean bringtotop = true
 integer textsize = -10
@@ -1118,48 +1329,58 @@ string facename = "Tahoma"
 boolean enabled = false
 string text = "Iniciar trabajo"
 boolean originalsize = true
+string picturename = ".\iconos\png\greenButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = vcenter!
 long backcolor = 12639424
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
 
-ln_c.LineColor = il_green
-ln_c_1.LineColor = il_yellow
-ln_c_2.LineColor = il_yellow
+if pb_b.enabled or pb_c_1.enabled or pb_c_2.enabled then 
+	if wf_cambiar_estado( 4, 1, 'trabajando') <> 0 then return
+else
+	if wf_cambiar_estado( 4, 4, 'trabajando') <> 0 then return
+end if 
 
-ln_b.LineColor = il_gray
-ln_b_2.LineColor = il_gray
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-ln_d.LineColor = il_gray
-ln_d_2.LineColor = il_gray
-ln_d_3.LineColor = il_gray
-ln_d_4.LineColor = il_gray
-
-ln_top_ok_1.LineColor = il_gray
-ln_c_top.LineColor = il_gray
-ln_c_1_top.LineColor = il_gray
-
-ln_top_ok_2.LineColor = il_gray
-ln_c_2_top.LineColor = il_gray
-
-ln_c_2_exit.LineColor = il_gray
-ln_e_top.LineColor = il_gray
-
-pb_b.enabled = false
-pb_b_2.enabled = false
-pb_d.enabled = true
-pb_c_1.enabled = true
-pb_c_2.enabled = true
-pb_e.enabled = false
+//ln_c.LineColor = il_green
+//ln_c_1.LineColor = il_yellow
+//ln_c_2.LineColor = il_yellow
+//
+//ln_b.LineColor = il_gray
+//ln_b_2.LineColor = il_gray
+//
+//ln_d.LineColor = il_gray
+//ln_d_2.LineColor = il_gray
+//ln_d_3.LineColor = il_gray
+//ln_d_4.LineColor = il_gray
+//
+//ln_top_ok_1.LineColor = il_gray
+//ln_c_top.LineColor = il_gray
+//ln_c_1_top.LineColor = il_gray
+//
+//ln_top_ok_2.LineColor = il_gray
+//ln_c_2_top.LineColor = il_gray
+//
+//ln_c_2_exit.LineColor = il_gray
+//ln_e_top.LineColor = il_gray
+//
+//pb_b.enabled = false
+//pb_b_2.enabled = false
+//pb_d.enabled = true
+//pb_c_1.enabled = true
+//pb_c_2.enabled = true
+//pb_e.enabled = false
 
 end event
 
 type pb_b_2 from picturebutton within tabpage_estados
 integer x = 1582
-integer y = 652
-integer width = 485
-integer height = 192
+integer y = 700
+integer width = 512
+integer height = 216
 integer taborder = 100
 boolean bringtotop = true
 integer textsize = -10
@@ -1171,29 +1392,34 @@ string facename = "Tahoma"
 boolean enabled = false
 string text = "Presupuesto no aprobado"
 boolean originalsize = true
+string picturename = ".\iconos\png\redButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
 long backcolor = 28553471
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 8, 3, This.text) <> 0 then return
 
-ln_b.LineColor = il_gray
-ln_b_2.LineColor = il_gray
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-ln_b_2_exit.LineColor = il_red
-ln_bot_1.LineColor = il_red
-ln_e_bot.LineColor = il_red
-
-pb_b.enabled = false
-pb_c.enabled = false
-pb_e.enabled = true
+//ln_b.LineColor = il_gray
+//ln_b_2.LineColor = il_gray
+//
+//ln_b_2_exit.LineColor = il_red
+//ln_bot_1.LineColor = il_red
+//ln_e_bot.LineColor = il_red
+//
+//pb_b.enabled = false
+//pb_c.enabled = false
+//pb_e.enabled = true
 end event
 
 type pb_b from picturebutton within tabpage_estados
 integer x = 1070
-integer y = 408
-integer width = 485
-integer height = 192
+integer y = 468
+integer width = 512
+integer height = 216
 integer taborder = 70
 boolean bringtotop = true
 integer textsize = -10
@@ -1204,30 +1430,34 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 boolean enabled = false
 string text = "Comunicar Presupuesto"
-boolean originalsize = true
+string picturename = ".\iconos\png\greenButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
 long backcolor = 12639424
 end type
 
-event clicked;r_current.event ue_select(This.X, This.Y)
+event clicked;
+if wf_cambiar_estado( 3, 1, 'esperando aporbación de presupuesto') <> 0 then return
 
-ln_b.LineColor = il_green
-ln_b_2.LineColor = il_red
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-pb_a.enabled = false
-pb_a_2.enabled = false
-pb_c.enabled = true
-pb_b_2.enabled = true
-
-ln_a.LineColor = il_gray
-ln_a_2.LineColor = il_gray
+//ln_b.LineColor = il_green
+//ln_b_2.LineColor = il_red
+//
+//pb_a.enabled = false
+//pb_a_2.enabled = false
+//pb_c.enabled = true
+//pb_b_2.enabled = true
+//
+//ln_a.LineColor = il_gray
+//ln_a_2.LineColor = il_gray
 end event
 
 type pb_a_2 from picturebutton within tabpage_estados
 integer x = 558
-integer y = 652
-integer width = 485
-integer height = 192
+integer y = 700
+integer width = 512
+integer height = 216
 integer taborder = 90
 boolean bringtotop = true
 integer textsize = -10
@@ -1238,33 +1468,36 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 boolean enabled = false
 string text = "Reparacion imposible"
-boolean originalsize = true
+string picturename = ".\iconos\png\redButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
 long backcolor = 28553471
 end type
 
 event clicked;// cambiar el estado
 
-r_current.event ue_select(This.X, This.Y)
+if wf_cambiar_estado( 8, 2, This.text) <> 0 then return
 
-ln_a.LineColor = il_gray
-ln_a_2.LineColor = il_gray
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-ln_a_2_exit.LineColor = il_red
-ln_bot_2.LineColor = il_red
-ln_bot_1.LineColor = il_red
-ln_e_bot.LineColor = il_red
-
-pb_b.enabled = false
-pb_a.enabled = false
-pb_e.enabled = true
+//ln_a.LineColor = il_gray
+//ln_a_2.LineColor = il_gray
+//
+//ln_a_2_exit.LineColor = il_red
+//ln_bot_2.LineColor = il_red
+//ln_bot_1.LineColor = il_red
+//ln_e_bot.LineColor = il_red
+//
+//pb_b.enabled = false
+//pb_a.enabled = false
+//pb_e.enabled = true
 end event
 
 type pb_a from picturebutton within tabpage_estados
 integer x = 46
-integer y = 408
-integer width = 485
-integer height = 192
+integer y = 468
+integer width = 512
+integer height = 216
 integer taborder = 50
 integer textsize = -10
 integer weight = 400
@@ -1272,21 +1505,26 @@ fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
+boolean enabled = false
 string text = "Iniciar analisis preliminar"
 boolean originalsize = true
+string picturename = ".\iconos\png\greenButton.png"
+string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
 long backcolor = 12639424
 end type
 
 event clicked;// cambiar el estado
 
-r_current.event ue_select(This.X, This.Y)
+if wf_cambiar_estado( 2, 1, This.text) <> 0 then return
 
-ln_a.LineColor = il_green
-ln_a_2.LineColor = il_red
+r_current.event ue_select(This.X, This.Y, this.Classname())
 
-pb_b.enabled = true
-pb_a_2.enabled = true
+//ln_a.LineColor = il_green
+//ln_a_2.LineColor = il_red
+//
+//pb_b.enabled = true
+//pb_a_2.enabled = true
 end event
 
 type ln_a from line within tabpage_estados
@@ -1470,21 +1708,23 @@ integer endy = 688
 end type
 
 type r_current from rectangle within tabpage_estados
-event ue_select ( long al_x,  long al_y )
+event ue_select ( long al_x,  long al_y,  string as_name )
 boolean visible = false
 long linecolor = 33554432
 integer linethickness = 4
 long fillcolor = 16777215
 integer x = 23
 integer y = 392
-integer width = 530
-integer height = 236
+integer width = 549
+integer height = 252
 end type
 
-event ue_select(long al_x, long al_y);this.visible = true
+event ue_select(long al_x, long al_y, string as_name);this.visible = true
 
 this.X = al_X - 20
 this.Y = al_Y - 20
+
+event ue_clicked(as_name)
 end event
 
 type ln_bot_2 from line within tabpage_estados
@@ -1578,6 +1818,17 @@ event constructor;this.settransobject(sqlca)
 this.insertrow(0)
 end event
 
+event itemchanged;
+if dwo.name = 'clientes_codigo' then
+	this.Retrieve(long(data))
+	
+	dw_cabecera.SetItem(1, 'clientes_codigo', long(data))
+	
+	wf_refresh_dddw('clientes_codigo', long(data))
+		
+end if 
+end event
+
 type dw_equipo from datawindow within tabpage_info
 integer x = 114
 integer y = 132
@@ -1598,6 +1849,16 @@ event constructor;this.settransobject(sqlca)
 this.insertrow(0)
 end event
 
+event itemchanged;if dwo.name = 'equipos_codigo' then
+	this.Retrieve(long(data))
+	
+	dw_cabecera.SetItem(1, 'equipos_codigo', long(data))
+	
+	wf_refresh_dddw('equipos_codigo', long(data))
+	
+end if 
+end event
+
 type st_1 from statictext within tabpage_info
 integer x = 4731
 integer y = 836
@@ -1612,7 +1873,7 @@ string facename = "Tahoma"
 long textcolor = 33554432
 long backcolor = 67108864
 string text = "00:00 "
-alignment alignment = Center!
+alignment alignment = center!
 boolean focusrectangle = false
 end type
 
