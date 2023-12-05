@@ -4,8 +4,6 @@ global type w_abm_reparaciones_v2 from w_abm_cyd_base
 end type
 type gb_repa from groupbox within w_abm_reparaciones_v2
 end type
-type gb_problema from groupbox within w_abm_reparaciones_v2
-end type
 type gb_comp from groupbox within w_abm_reparaciones_v2
 end type
 type tab_detalles from tab within w_abm_reparaciones_v2
@@ -160,7 +158,6 @@ global type w_abm_reparaciones_v2 from w_abm_cyd_base
 integer width = 5774
 integer height = 2840
 gb_repa gb_repa
-gb_problema gb_problema
 gb_comp gb_comp
 tab_detalles tab_detalles
 end type
@@ -182,6 +179,7 @@ forward prototypes
 public subroutine wf_get_codigo ()
 public function integer wf_cambiar_estado (long al_estado, long al_motivo, string as_estado)
 public function integer wf_refresh_dddw (string as_name, integer ai_data)
+public function integer wf_grabar (ref datawindow adw_cab, ref datawindow adw_det)
 end prototypes
 
 public subroutine wf_get_codigo ();SELECT TOP 1 REPARACIONES_CODIGO
@@ -239,24 +237,55 @@ dw_cabecera.enabled = true
 return 0
 end function
 
+public function integer wf_grabar (ref datawindow adw_cab, ref datawindow adw_det);long ll_ret, ll_row
+adw_cab.accepttext()
+
+ll_row = adw_cab.rowcount()
+if ll_row >0 then 
+		if adw_cab.update(true,false) = 1 then
+			if adw_det.update(true,false) = 1 then
+				commit using sqlca;
+				adw_cab.resetupdate()
+				ll_ret = 1
+			else
+				rollback using sqlca;
+				MessageBox("Error de grabacion - detalle", + &
+						"La aplicación a encontrado un error",Stopsign!)
+				adw_cab.rowsmove(1,1,delete!,adw_cab,1,primary!)
+				adw_cab.setrow(1)
+				ll_ret = -1 
+			end if
+		else
+			 rollback using sqlca;
+			MessageBox("Error de grabacion - cabecera", + &
+						"La aplicación a encontrado un error",Stopsign!)
+			adw_cab.rowsmove(1,1,delete!,adw_cab,1,primary!)
+			adw_cab.setrow(1)
+			ll_ret = -1
+		end if
+else
+	messagebox("Error","No se encontraron datos para grabar",stopsign!)
+	ll_ret = -1
+end if
+
+return ll_ret
+end function
+
 on w_abm_reparaciones_v2.create
 int iCurrent
 call super::create
 this.gb_repa=create gb_repa
-this.gb_problema=create gb_problema
 this.gb_comp=create gb_comp
 this.tab_detalles=create tab_detalles
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.gb_repa
-this.Control[iCurrent+2]=this.gb_problema
-this.Control[iCurrent+3]=this.gb_comp
-this.Control[iCurrent+4]=this.tab_detalles
+this.Control[iCurrent+2]=this.gb_comp
+this.Control[iCurrent+3]=this.tab_detalles
 end on
 
 on w_abm_reparaciones_v2.destroy
 call super::destroy
 destroy(this.gb_repa)
-destroy(this.gb_problema)
 destroy(this.gb_comp)
 destroy(this.tab_detalles)
 end on
@@ -348,46 +377,18 @@ dw_detalle.AcceptText()
 for ll_counter = dw_detalle.RowCount() to 1 step -1
 	dw_detalle.SetItem(ll_counter, 'reparaciones_componentes_reparaciones_codigo', il_codigo)
 	
-//	ll_codigo =		dw_detalle.GetItemNumber(ll_counter, 'componentes_codigo')
-//	ls_sk = 			dw_detalle.GetItemString(ll_counter, 'componentes_componentes_sk')
-//	ls_nombre =	dw_detalle.GetItemString(ll_counter, 'componentes_componentes_nombre')
-//	ll_cantidad = 	dw_detalle.GetItemNumber(ll_counter, 'compo_compr_cantidad')
-//	ll_precio =		dw_detalle.GetItemNumber(ll_counter, 'compo_compr_precio_compra')
-//	
-//	if isNull(ll_codigo) or isNull(ls_sk) or isNull(ll_cantidad) or isNull(ll_precio) then
-//		dw_detalle.DeleteRow(ll_counter)
-//	elseif trim(ls_sk, true) = '' or ll_cantidad = 0 or ll_precio = 0 then
-//		dw_detalle.DeleteRow(ll_counter)
-//	elseif ll_codigo = 0 and isNull(ls_nombre) then 
-//		dw_detalle.DeleteRow(ll_counter)
-//	elseif ll_codigo = 0 then
-//		lds_componentes.Reset()
-//		lds_componentes.InsertRow(0)
-//		lds_componentes.SetItem(1, 'componentes_nombre', ls_nombre)
-//		lds_componentes.SetItem(1, 'componentes_sk', ls_sk)
-//		
-//		lds_componentes.AcceptText()
-//		
-//		if lds_componentes.Update(True, False) = 1 then
-//			COMMIT USING SQLCA;
-//			
-//			SELECT TOP 1 COMPONENTES_CODIGO
-//			INTO :ll_inserted		
-//			FROM COMPONENTES
-//			ORDER BY COMPONENTES_CODIGO DESC
-//			COMMIT USING SQLCA;
-//			
-//			dw_detalle.SetItem(ll_counter, 'componentes_codigo', ll_inserted)
-//		else 
-//			dw_detalle.DeleteRow(ll_counter)
-//		end if 
-//		
-//	end if 
+	ll_codigo =		dw_detalle.GetItemNumber(ll_counter, 'reparaciones_componentes_componentes_codigo')
+	ll_cantidad = 	dw_detalle.GetItemNumber(ll_counter, 'reparaciones_componentes_repa_compo_cantidad')
+	ll_precio =		dw_detalle.GetItemNumber(ll_counter, 'reparaciones_componentes_repa_compo_precio_venta')
+
+	if isNull(ll_codigo) or isNull(ll_cantidad) or isNull(ll_precio) then
+		dw_detalle.DeleteRow(ll_counter)
+	end if 
 
 next
 
 
-if f_grabar_cabecera_detalle(dw_cabecera,dw_detalle) <> -1 then 
+if wf_grabar(dw_cabecera,dw_detalle) <> -1 then 
 	
 	if ibool_insert then wf_cambiar_estado(1, 1, '')
 	
@@ -399,7 +400,7 @@ type dw_detalle from w_abm_cyd_base`dw_detalle within w_abm_reparaciones_v2
 integer x = 3067
 integer y = 144
 integer width = 2560
-integer height = 572
+integer height = 1112
 string dataobject = "dw_abm_reparaciones_det"
 boolean vscrollbar = true
 end type
@@ -438,9 +439,21 @@ if lds_componentes.Retrieve(long(data)) > 0 then
 	dw_detalle.SetItem(row, 'componentes_componentes_sk', lds_componentes.GetItemString(1, 'componentes_sk'))
 	dw_detalle.SetItem(row, 'reparaciones_componentes_repa_compo_precio_venta', lds_componentes.GetItemNumber(1, 'componentes_precio_venta'))
 	dw_detalle.SetItem(row, 'reparaciones_componentes_repa_compo_precio_compra', lds_componentes.GetItemNumber(1, 'componentes_precio_compra'))
+	if data  = '17' then dw_detalle.SetItem(row, 'reparaciones_componentes_repa_compo_cantidad', 1)
 	
 end if 
 ROLLBACK USING SQLCA;
+end event
+
+event dw_detalle::clicked;call super::clicked;//colorea la fila selccionada
+INTEGER li_row
+li_row = row
+
+IF li_row > 0 THEN
+	SelectRow(this, 0, FALSE)
+	SelectRow(this, li_row, TRUE)
+END IF 
+
 end event
 
 type dw_cabecera from w_abm_cyd_base`dw_cabecera within w_abm_reparaciones_v2
@@ -451,6 +464,84 @@ integer height = 1144
 string dataobject = "dw_abm_reparaciones_v2"
 boolean border = false
 end type
+
+event dw_cabecera::constructor;call super::constructor;DatawindowChild ldwC_componentes
+long ll_inserted
+
+this.GetChild('desc_prob_descripcion', ldwC_componentes)
+ldwC_componentes.SetTransObject(SQLCA)
+
+if ldwC_componentes.Retrieve() < 0 then
+	ROLLBACK USING SQLCA;
+	return
+end if
+COMMIT USING SQLCA;
+
+ll_inserted = ldwC_componentes.InsertRow(0)
+ldwC_componentes.SetItem(ll_inserted, 'desc_prob_descripcion', '(Nuevo)')
+ldwC_componentes.SetSort('desc_prob_descripcion A')
+ldwC_componentes.AcceptText()
+ldwC_componentes.Sort()
+
+// --------------------------------------------
+
+this.GetChild('reparaciones_reparaciones_prolema', ldwC_componentes)
+ldwC_componentes.SetTransObject(SQLCA)
+
+if ldwC_componentes.Retrieve() < 0 then
+	ROLLBACK USING SQLCA;
+	return
+end if
+COMMIT USING SQLCA;
+
+ll_inserted = ldwC_componentes.InsertRow(0)
+ldwC_componentes.SetItem(ll_inserted, 'problemas_codigo', 0)
+ldwC_componentes.SetItem(ll_inserted, 'problemas_descripcion', '(Nuevo)')
+ldwC_componentes.SetSort('problemas_codigo A')
+ldwC_componentes.AcceptText()
+ldwC_componentes.Sort()
+
+// --------------------------------------------
+
+this.GetChild('soluciones_descripcion', ldwC_componentes)
+ldwC_componentes.SetTransObject(SQLCA)
+
+if ldwC_componentes.Retrieve() < 0 then
+	ROLLBACK USING SQLCA;
+	return
+end if
+COMMIT USING SQLCA;
+
+ll_inserted = ldwC_componentes.InsertRow(0)
+ldwC_componentes.SetItem(ll_inserted, 'soluciones_descripcion', '(Nuevo)')
+ldwC_componentes.SetSort('soluciones_descripcion A')
+ldwC_componentes.AcceptText()
+ldwC_componentes.Sort()
+
+end event
+
+event dw_cabecera::itemchanged;call super::itemchanged;if data = 'desc_prob_descripcion' then
+	This.SetColumn('descripciones_problemas_desc_prob_descripcion')
+	return
+	
+end if 
+
+
+// --------------------------------------------
+if data = 'reparaciones_reparaciones_prolema' then
+	This.SetColumn('problemas_problemas_descripcion')
+	return
+	
+end if 
+
+
+// --------------------------------------------w
+if data ='soluciones_descripcion' then
+	This.SetColumn('soluciones_soluciones_descripcion')
+	return
+	
+end if 
+end event
 
 type gb_repa from groupbox within w_abm_reparaciones_v2
 integer x = 32
@@ -469,28 +560,11 @@ long backcolor = 67108864
 string text = "Reparacion"
 end type
 
-type gb_problema from groupbox within w_abm_reparaciones_v2
-integer x = 2976
-integer y = 800
-integer width = 2720
-integer height = 512
-integer taborder = 130
-integer textsize = -16
-integer weight = 700
-fontcharset fontcharset = ansi!
-fontpitch fontpitch = variable!
-fontfamily fontfamily = swiss!
-string facename = "Tahoma"
-long textcolor = 33554432
-long backcolor = 67108864
-string text = "Problema"
-end type
-
 type gb_comp from groupbox within w_abm_reparaciones_v2
 integer x = 2981
 integer y = 24
 integer width = 2720
-integer height = 732
+integer height = 1288
 integer taborder = 40
 integer textsize = -16
 integer weight = 700
