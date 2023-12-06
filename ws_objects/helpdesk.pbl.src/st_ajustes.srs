@@ -1,0 +1,9 @@
+﻿$PBExportHeader$st_ajustes.srs
+global type st_ajustes from structure
+	long		l_componente
+	string		s_usuario
+	datetime		d_fecha
+	long		l_cantidad
+	boolean		b_editar		descriptor "comment" = "para saber si va a editar o crear"
+end type
+
