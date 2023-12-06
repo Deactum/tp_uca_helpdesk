@@ -80,6 +80,8 @@ type ln_bot_2 from line within tabpage_estados
 end type
 type ln_top_ok_2 from line within tabpage_estados
 end type
+type dw_estados from datawindow within tabpage_estados
+end type
 type tabpage_estados from userobject within tab_detalles
 ln_c_2 ln_c_2
 ln_c_1 ln_c_1
@@ -116,6 +118,7 @@ ln_e ln_e
 r_current r_current
 ln_bot_2 ln_bot_2
 ln_top_ok_2 ln_top_ok_2
+dw_estados dw_estados
 end type
 type tabpage_info from userobject within tab_detalles
 end type
@@ -123,9 +126,7 @@ type dw_cliente from datawindow within tabpage_info
 end type
 type dw_equipo from datawindow within tabpage_info
 end type
-type st_1 from statictext within tabpage_info
-end type
-type st_minutos from statictext within tabpage_info
+type st_hora from statictext within tabpage_info
 end type
 type st_horas from statictext within tabpage_info
 end type
@@ -140,8 +141,7 @@ end type
 type tabpage_info from userobject within tab_detalles
 dw_cliente dw_cliente
 dw_equipo dw_equipo
-st_1 st_1
-st_minutos st_minutos
+st_hora st_hora
 st_horas st_horas
 gb_equipo gb_equipo
 gb_cliente gb_cliente
@@ -180,6 +180,9 @@ public subroutine wf_get_codigo ()
 public function integer wf_cambiar_estado (long al_estado, long al_motivo, string as_estado)
 public function integer wf_refresh_dddw (string as_name, integer ai_data)
 public function integer wf_grabar (ref datawindow adw_cab, ref datawindow adw_det)
+public subroutine wf_timer ()
+public subroutine wf_calcular_mano_obra ()
+public subroutine wf_insertar_campos ()
 end prototypes
 
 public subroutine wf_get_codigo ();SELECT TOP 1 REPARACIONES_CODIGO
@@ -271,6 +274,114 @@ end if
 return ll_ret
 end function
 
+public subroutine wf_timer ();long ll_horas
+long ll_horas_display, ll_min_display
+
+tab_detalles.tabpage_info.st_hora.text = string(now(), 'hh:mm')
+
+SELECT DATEDIFF(HOUR, reparaciones_inicio, GETDATE())
+INTO :ll_horas
+FROM	 REPARACIONES 
+WHERE REPARACIONES_CODIGO = :il_codigo
+COMMIT USING SQLCA;
+
+ll_min_display = ll_horas - (ll_horas/60)
+
+tab_detalles.tabpage_info.st_horas.text = string(ll_horas) + ' Horas'
+end subroutine
+
+public subroutine wf_calcular_mano_obra ();long ll_horas, ll_mano, ll_row
+
+SELECT DATEDIFF(HOUR, reparaciones_inicio, GETDATE())
+INTO :ll_horas
+FROM	 REPARACIONES 
+WHERE REPARACIONES_CODIGO = :il_codigo
+COMMIT USING SQLCA;
+
+SELECT CONVERT(INT, PARAMETROS_VALOR)
+INTO :ll_mano
+FROM PARAMETROS
+WHERE PARAMETROS_CODIGO = 'COSTO_HOMBRE'
+commit using sqlca;
+
+
+ll_row = dw_detalle.InsertRow(0)
+
+
+dw_detalle.SetItem(ll_row, 'reparaciones_componentes_componentes_codigo', 18)
+dw_detalle.SetItem(ll_row, 'reparaciones_componentes_repa_compo_cantidad', ll_horas)
+dw_detalle.SetItem(ll_row, 'reparaciones_componentes_repa_compo_precio_venta', ll_mano)
+dw_detalle.SetItem(ll_row, 'componentes_componentes_sk', '-')
+dw_detalle.SetItem(ll_row, 'reparaciones_componentes_repa_compo_precio_compra', 0)
+dw_detalle.AcceptText()
+
+end subroutine
+
+public subroutine wf_insertar_campos ();datastore lds_aux
+long ll_aux
+string ls_aux
+
+lds_aux = Create datastore
+ 
+// se insertan los nuevos problemas-soluciones-decripcion
+if dw_cabecera.GetItemString(1, 'desc_prob_descripcion') = '(Nuevo)' then
+	lds_aux.DataObject = 'dw_abm_descripciones_problemas'
+	lds_aux.SetTransObject(SQLCA)
+	lds_aux.Reset()
+	lds_aux.InsertRow(0)
+	ls_aux = dw_cabecera.GetItemString(1, 'descripciones_problemas_desc_prob_descripcion')
+	lds_aux.SetItem(1, 'desc_prob_descripcion', ls_aux)
+			
+	lds_aux.AcceptText()
+			
+	if lds_aux.Update(True, False) = 1 then
+		COMMIT USING SQLCA;
+		dw_cabecera.SetItem(1, 'desc_prob_descripcion', ls_aux)
+	end if 
+end if 
+
+// problemas
+if dw_cabecera.GetItemNumber(1, 'reparaciones_reparaciones_prolema') = 0 then
+	lds_aux.DataObject = 'dw_abm_problemas'
+	lds_aux.SetTransObject(SQLCA)
+	lds_aux.Reset()
+	lds_aux.InsertRow(0)
+	lds_aux.SetItem(1, 'problemas_descripcion', dw_cabecera.GetItemString(1, 'problemas_problemas_descripcion'))
+			
+	lds_aux.AcceptText()
+			
+	if lds_aux.Update(True, False) = 1 then
+		COMMIT USING SQLCA;
+				
+		SELECT TOP 1 PROBLEMAS_CODIGO
+		INTO :ll_aux		
+		FROM PROBLEMAS
+		ORDER BY PROBLEMAS_CODIGO DESC
+		COMMIT USING SQLCA;
+				
+		dw_cabecera.SetItem(1, 'reparaciones_reparaciones_prolema', ll_aux)
+	end if 
+end if 
+
+// solucion
+if dw_cabecera.GetItemString(1, 'soluciones_descripcion') = '(Nuevo)' then
+	lds_aux.DataObject = 'dw_abm_soluciones'
+	lds_aux.SetTransObject(SQLCA)
+	lds_aux.Reset()
+	lds_aux.InsertRow(0)
+	ls_aux = dw_cabecera.GetItemString(1, 'soluciones_soluciones_descripcion')
+	lds_aux.SetItem(1, 'soluciones_descripcion', ls_aux)
+		
+	lds_aux.AcceptText()
+		
+	if lds_aux.Update(True, False) = 1 then
+		COMMIT USING SQLCA;
+				
+		dw_cabecera.SetItem(1, 'soluciones_descripcion', ls_aux)
+	end if 
+end if 
+end subroutine
+
 on w_abm_reparaciones_v2.create
 int iCurrent
 call super::create
@@ -309,6 +420,8 @@ if len(ls_codigo)>0 then
 	if ll_row>0 then 
 		is_codigo = ls_codigo
 		il_codigo = long(ls_codigo)
+		Timer(60)
+		wf_timer()
 		if dw_detalle.retrieve(ls_codigo) = 0 then dw_detalle.insertrow(0) 
 		ll_cliente = dw_cabecera.GetItemNumber(1, 'clientes_codigo')
 		ll_equipo = dw_cabecera.GetItemNumber(1, 'equipos_codigo')
@@ -336,8 +449,18 @@ WHERE REPARACIONES_CODIGO = :il_codigo
 ORDER BY REPA_ESTA_FECHA DESC
 COMMIT USING SQLCA;
 
+if ll_estado = 9 then 
+	tab_detalles.tabpage_estados.dw_estados.retrieve(il_codigo)
+	tab_detalles.tabpage_estados.dw_estados.visible = true
+end if 
+	
+
 tab_detalles.tabpage_estados.event ue_select_estado(ll_estado)
 
+
+end event
+
+event timer;call super::timer;wf_timer()
 
 end event
 
@@ -353,20 +476,40 @@ integer taborder = 40
 end type
 
 event cb_1::clicked;// ancestro anulado
-long ll_counter
+long ll_counter, ll_aux, ll_costo_total
 long ll_inserted
+datastore lds_aux
 
 long ll_codigo
-string ls_sk
 string ls_nombre
 long ll_cantidad
 long ll_precio
 
 il_codigo = dw_cabecera.GetItemNumber(1, 'reparaciones_codigo')
 
+
+wf_insertar_campos()
+
+			
+// acciones si se esta insertando por primera vez
+
 if ibool_insert then 
 	wf_get_codigo()
 	dw_cabecera.SetItem(1, 'reparaciones_codigo', il_codigo)
+	
+	if dw_cabecera.GetItemNumber(1, 'reparaciones_urgente') = -1 then
+		
+		SELECT CONVERT(INT, PARAMETROS_VALOR)
+		INTO :ll_aux
+		FROM PARAMETROS
+		WHERE PARAMETROS_CODIGO = 'COSTO_URGENTE'
+		commit using sqlca;
+		
+		ll_costo_total = dw_cabecera.GetItemNumber(1, 'reparaciones_costo')
+		dw_cabecera.SetItem(1, 'reparaciones_costo', ll_costo_total+ll_aux)
+		
+	end if
+	
 end if 
 
 dw_cabecera.AcceptText()
@@ -383,6 +526,8 @@ for ll_counter = dw_detalle.RowCount() to 1 step -1
 
 	if isNull(ll_codigo) or isNull(ll_cantidad) or isNull(ll_precio) then
 		dw_detalle.DeleteRow(ll_counter)
+	//elseif ll_cantidad = 0 or ll_precio = 0 then
+		//dw_detalle.DeleteRow(ll_counter)
 	end if 
 
 next
@@ -655,6 +800,7 @@ ln_e ln_e
 r_current r_current
 ln_bot_2 ln_bot_2
 ln_top_ok_2 ln_top_ok_2
+dw_estados dw_estados
 end type
 
 event ue_select_estado(integer ai_estado);// Se selecciona el boton
@@ -700,7 +846,7 @@ event ue_clicked(string as_bt);Choose case as_bt
 		
 		pb_b.enabled = false
 		pb_a.enabled = false
-		pb_e.enabled = true
+		pb_f.enabled = true
 
 	case 'pb_b'
 		ln_b.LineColor = il_green
@@ -784,8 +930,24 @@ event ue_clicked(string as_bt);Choose case as_bt
 		ln_e_top.LineColor = il_red
 		
 		pb_d.enabled = false
+		pb_c.enabled = true
 		pb_c_1.enabled = false
-		pb_e.enabled = true
+		pb_f.enabled = true
+//		ln_c.LineColor = il_gray
+//		ln_c_1.LineColor = il_gray
+//		ln_c_2.LineColor = il_gray
+//		
+//		ln_top_ok_1.LineColor = il_green
+//		ln_top_ok_2.LineColor = il_green
+//		ln_c_top.LineColor = il_green
+//		ln_c_2_top.LineColor = il_green
+//		
+//		ln_c_2_exit.LineColor = il_red
+//		ln_e_top.LineColor = il_red
+//		
+//		pb_d.enabled = false
+//		pb_c_1.enabled = false
+//		pb_e.enabled = true
 
 	case 'pb_d'
 		ln_c.LineColor = il_gray
@@ -798,6 +960,7 @@ event ue_clicked(string as_bt);Choose case as_bt
 		ln_d_4.LineColor = il_green
 		
 		
+		pb_c.enabled = true
 		pb_c_1.enabled = false
 		pb_c_2.enabled = false
 		pb_e.enabled = true
@@ -831,6 +994,23 @@ event ue_clicked(string as_bt);Choose case as_bt
 		pb_f.enabled = true
 			
 	case 'pb_f'
+		ln_a_2_exit.LineColor = il_gray
+		ln_bot_1.LineColor = il_gray
+		ln_bot_2.LineColor = il_gray
+		ln_e_bot.LineColor = il_gray
+		
+		ln_d.LineColor = il_gray
+		ln_d_2.LineColor = il_gray
+		ln_d_3.LineColor = il_gray
+		ln_d_4.LineColor = il_gray
+		
+		ln_top_ok_1.LineColor = il_gray
+		ln_top_ok_2.LineColor = il_gray
+		ln_c_top.LineColor = il_gray
+		ln_c_2_top.LineColor = il_gray
+		
+		ln_c_2_exit.LineColor = il_gray
+		ln_e_top.LineColor = il_gray
 		ln_e.LineColor = il_gray
 
 		pb_e.enabled = false
@@ -874,6 +1054,7 @@ this.ln_e=create ln_e
 this.r_current=create r_current
 this.ln_bot_2=create ln_bot_2
 this.ln_top_ok_2=create ln_top_ok_2
+this.dw_estados=create dw_estados
 this.Control[]={this.ln_c_2,&
 this.ln_c_1,&
 this.pb_f,&
@@ -908,7 +1089,8 @@ this.ln_c_1_top,&
 this.ln_e,&
 this.r_current,&
 this.ln_bot_2,&
-this.ln_top_ok_2}
+this.ln_top_ok_2,&
+this.dw_estados}
 end on
 
 on tabpage_estados.destroy
@@ -947,6 +1129,7 @@ destroy(this.ln_e)
 destroy(this.r_current)
 destroy(this.ln_bot_2)
 destroy(this.ln_top_ok_2)
+destroy(this.dw_estados)
 end on
 
 event constructor;
@@ -1215,6 +1398,10 @@ if wf_cambiar_estado( 8, 1, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
+
+
+
+
 //ln_a_2_exit.LineColor = il_gray
 //ln_bot_1.LineColor = il_gray
 //ln_bot_2.LineColor = il_gray
@@ -1322,6 +1509,8 @@ event clicked;
 if wf_cambiar_estado( 6, 1, 'en soporte externo') <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
+
+wf_calcular_mano_obra()
 
 // il_green il_yellow il_gray il_red
 
@@ -1477,6 +1666,8 @@ if wf_cambiar_estado( 8, 3, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
+wf_calcular_mano_obra()
+
 //ln_b.LineColor = il_gray
 //ln_b_2.LineColor = il_gray
 //
@@ -1553,6 +1744,9 @@ event clicked;// cambiar el estado
 if wf_cambiar_estado( 8, 2, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
+
+
+wf_calcular_mano_obra()
 
 //ln_a.LineColor = il_gray
 //ln_a_2.LineColor = il_gray
@@ -1819,6 +2013,24 @@ integer endx = 4059
 integer endy = 52
 end type
 
+type dw_estados from datawindow within tabpage_estados
+boolean visible = false
+integer x = 37
+integer y = 32
+integer width = 5586
+integer height = 1052
+integer taborder = 40
+boolean bringtotop = true
+boolean enabled = false
+string title = "none"
+string dataobject = "dw_list_reparaciones_estados"
+boolean border = false
+boolean livescroll = true
+end type
+
+event constructor;this.settransobject(SQLCA)
+end event
+
 type tabpage_info from userobject within tab_detalles
 integer x = 18
 integer y = 116
@@ -1830,8 +2042,7 @@ long tabtextcolor = 33554432
 long picturemaskcolor = 536870912
 dw_cliente dw_cliente
 dw_equipo dw_equipo
-st_1 st_1
-st_minutos st_minutos
+st_hora st_hora
 st_horas st_horas
 gb_equipo gb_equipo
 gb_cliente gb_cliente
@@ -1842,8 +2053,7 @@ end type
 on tabpage_info.create
 this.dw_cliente=create dw_cliente
 this.dw_equipo=create dw_equipo
-this.st_1=create st_1
-this.st_minutos=create st_minutos
+this.st_hora=create st_hora
 this.st_horas=create st_horas
 this.gb_equipo=create gb_equipo
 this.gb_cliente=create gb_cliente
@@ -1851,8 +2061,7 @@ this.gb_hora=create gb_hora
 this.gb_1=create gb_1
 this.Control[]={this.dw_cliente,&
 this.dw_equipo,&
-this.st_1,&
-this.st_minutos,&
+this.st_hora,&
 this.st_horas,&
 this.gb_equipo,&
 this.gb_cliente,&
@@ -1863,8 +2072,7 @@ end on
 on tabpage_info.destroy
 destroy(this.dw_cliente)
 destroy(this.dw_equipo)
-destroy(this.st_1)
-destroy(this.st_minutos)
+destroy(this.st_hora)
 destroy(this.st_horas)
 destroy(this.gb_equipo)
 destroy(this.gb_cliente)
@@ -1933,7 +2141,7 @@ event itemchanged;if dwo.name = 'equipos_codigo' then
 end if 
 end event
 
-type st_1 from statictext within tabpage_info
+type st_hora from statictext within tabpage_info
 integer x = 4731
 integer y = 836
 integer width = 709
@@ -1951,26 +2159,9 @@ alignment alignment = center!
 boolean focusrectangle = false
 end type
 
-type st_minutos from statictext within tabpage_info
-integer x = 4805
-integer y = 252
-integer width = 576
-integer height = 136
-integer textsize = -16
-integer weight = 700
-fontcharset fontcharset = ansi!
-fontpitch fontpitch = variable!
-fontfamily fontfamily = swiss!
-string facename = "Tahoma"
-long textcolor = 33554432
-long backcolor = 67108864
-string text = "00 Minutos"
-boolean focusrectangle = false
-end type
-
 type st_horas from statictext within tabpage_info
-integer x = 4805
-integer y = 132
+integer x = 4777
+integer y = 232
 integer width = 576
 integer height = 136
 integer textsize = -16
@@ -1982,6 +2173,7 @@ string facename = "Tahoma"
 long textcolor = 33554432
 long backcolor = 67108864
 string text = "00 Horas"
+alignment alignment = Center!
 boolean focusrectangle = false
 end type
 
