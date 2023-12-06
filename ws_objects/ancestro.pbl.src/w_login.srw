@@ -192,7 +192,7 @@ UPDATE USUARIOS
 SET USUARIOS_SESION = 1
 WHERE USUARIOS_CODIGO = :ls_user
 COMMIT USING SQLCA;
-
+gs_usuario = ls_user
 close(parent)
 
 end event
