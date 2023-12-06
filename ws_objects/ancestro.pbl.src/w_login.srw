@@ -161,15 +161,6 @@ else
 	p_pass.visible = false
 end if
 
-SELECT USUARIOS_ACTIVO
-INTO :il_return
-FROM USUARIOS
-WHERE USUARIOS_CODIGO = :ls_user
-COMMIT USING SQLCA;
-
-if il_return = 0 then return
-il_return = 0
-
 SELECT CASE WHEN USUARIOS_CONTRASENA =  HashBytes('SHA2_256', :ls_pass) THEN 0 ELSE 1 END AS OK_PASS
 INTO :il_return
 FROM USUARIOS
@@ -192,7 +183,7 @@ UPDATE USUARIOS
 SET USUARIOS_SESION = 1
 WHERE USUARIOS_CODIGO = :ls_user
 COMMIT USING SQLCA;
-gs_usuario = ls_user
+
 close(parent)
 
 end event
