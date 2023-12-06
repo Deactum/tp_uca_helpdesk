@@ -18,6 +18,8 @@ elseif left(tipo,4)="char" then
 	dato = dw_ref.GetItemString(dw_ref.GetRow(),ai_column)
 elseif tipo ="date" then
 	dato = dw_ref.GetItemDate(dw_ref.GetRow(),ai_column)
+elseif tipo = "datetime"then
+	dato = dw_ref.GetItemDatetime(dw_ref.GetRow(),ai_column)
 else
 	setnull(dato)
 end if
