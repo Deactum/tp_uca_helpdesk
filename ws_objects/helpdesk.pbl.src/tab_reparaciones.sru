@@ -6,7 +6,7 @@ end forward
 
 global type tab_reparaciones from uo_grilla_base
 string is_titulo = "Reparaciones"
-string is_abm = "w_abm_reparaciones"
+string is_abm = "w_abm_reparaciones_v2"
 end type
 global tab_reparaciones tab_reparaciones
 
