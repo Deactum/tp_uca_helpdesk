@@ -90,6 +90,7 @@ end type
 type p_1 from picture within uo_tarjet_base
 integer width = 439
 integer height = 384
+boolean originalsize = true
 string picturename = ".\iconos\2x\baseline_person_white_48dp.png"
 boolean focusrectangle = false
 end type
