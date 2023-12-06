@@ -147,7 +147,7 @@ timer(60)
 ls_usuario = sqlca.userid
 
 uo_barra.st_1.text = 'Usuario: '
-uo_barra.st_2.text = ls_usuario
+uo_barra.st_2.text = gs_usuario
 end event
 
 event timer;tab_principal.Control[1].triggerevent('ue_actualizar')
