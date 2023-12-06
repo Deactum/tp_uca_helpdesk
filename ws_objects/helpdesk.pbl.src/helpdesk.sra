@@ -14,6 +14,7 @@ global variables
 powerobject g_object
 
 string gs_usu_codigo
+string gs_usuario
 string _path
 
 boolean gb_gerente = False

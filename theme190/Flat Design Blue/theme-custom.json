@@ -193,6 +193,18 @@
 			"border-color": "#000000"
 		}
 	},
+	"tarjet_trabajando": {
+		"drawing": true,
+		"default-style": true,
+		"normal-state": {
+			"background-color": "#00b0ee",
+			"border-color": "#000000"
+		},
+		"disabled-state": {
+			"background-color": "#CCCCCC",
+			"border-color": "#000000"
+		}
+	},
 	"uo_tarjet_base.st_1": {
 		"drawing": true,
 		"border": 0,

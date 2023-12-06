@@ -8,6 +8,18 @@ global type tarjet_concretados from uo_tarjet_base
 end type
 global tarjet_concretados tarjet_concretados
 
+forward prototypes
+public subroutine of_refresh ()
+end prototypes
+
+public subroutine of_refresh ();long ll_ret 
+select count(*)
+into :ll_ret
+from REPARACIONES_ESTADOS re
+where re.ESTADOS_CODIGO = 8;
+this.st_2.text = string(ll_ret)
+end subroutine
+
 on tarjet_concretados.create
 call super::create
 end on
