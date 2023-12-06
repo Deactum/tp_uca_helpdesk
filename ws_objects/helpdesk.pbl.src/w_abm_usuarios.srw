@@ -91,6 +91,10 @@ integer taborder = 30
 end type
 
 event cb_aceptar::clicked;// Ancestro anulado
+datastore lds_roles
+long ll_rows, ll_rol
+
+
 if f_validacion(dw_datos) = 1 then return 
 if f_grabar(dw_datos) >0 then 
 	
@@ -102,6 +106,33 @@ if f_grabar(dw_datos) >0 then
 	set usuarios_foto = :iblob_imagen
 	where usuarios_codigo = :is_codigo;
 			
+	commit using sqlca;
+	
+	// Se guarda el rol
+	ll_rol = dw_datos.GetItemNumber(1, 'usuarios_roles_roles_codigo')
+	lds_roles = Create datastore
+	lds_roles.DataObject = 'dw_ds_usuarios_roles'
+	lds_roles.SetTransObject(SQLCA)
+	ll_rows = lds_roles.Retrieve(is_codigo)
+	
+	if ll_rows < 0 then
+		rollback using sqlca;
+		return
+		
+	elseif ll_rows = 0 then
+		lds_roles.InsertRow(0)
+		lds_roles.SetItem(1, 'usuarios_codigo', is_codigo)
+		lds_roles.SetItem(1, 'roles_codigo', ll_rol)
+	
+	elseif ll_rows > 0 then
+		lds_roles.SetItem(1, 'roles_codigo', ll_rol)
+
+	end if
+	
+	 if lds_roles.Update(true, false) <> 1 then
+		rollback using sqlca;
+		return
+	end if  
 	commit using sqlca;
 	
 	close(parent)

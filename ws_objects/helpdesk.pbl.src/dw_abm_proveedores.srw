@@ -18,6 +18,20 @@ on dw_abm_proveedores.destroy
 call super::destroy
 end on
 
+event open;//Ancestro anulado
+long ll_codigo
+string ls_codigo
+
+ls_codigo = message.stringparm
+ll_codigo = long(ls_codigo)
+
+if ll_codigo >0 then 
+	dw_datos.retrieve( ll_codigo)
+elseif len(ls_codigo) > 0 then 
+	dw_datos.retrieve(ls_codigo)
+end if
+end event
+
 type cb_cancelar from w_abm_base`cb_cancelar within dw_abm_proveedores
 integer x = 745
 integer y = 472
