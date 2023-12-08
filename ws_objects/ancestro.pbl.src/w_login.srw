@@ -158,7 +158,10 @@ INTO :il_return
 FROM USUARIOS
 WHERE USUARIOS_CODIGO = :ls_user
 COMMIT USING SQLCA;
-if il_return = 0 then return
+if il_return = 0 then 
+	messagebox('Aviso!', 'El usuario ya no se encuentra activo en el sistema')
+	return
+end if 
 il_return = 0
 
 SELECT CASE WHEN USUARIOS_CONTRASENA =  HashBytes('SHA2_256', :ls_pass) THEN 0 ELSE 1 END AS OK_PASS
