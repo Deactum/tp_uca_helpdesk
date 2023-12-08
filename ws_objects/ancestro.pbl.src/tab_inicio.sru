@@ -34,10 +34,9 @@ global tab_inicio tab_inicio
 type variables
 eon_appeon_resize  ieon_resize
 
-datastore ids_datos1,ids_datos2,ids_datos3
+datastore ids_datos1,ids_datos2
 
 end variables
-
 forward prototypes
 public subroutine of_actualizar_graficos ()
 end prototypes
@@ -46,8 +45,9 @@ event ue_actualizar();of_actualizar_graficos()
 end event
 
 public subroutine of_actualizar_graficos ();ids_datos1.retrieve()
+ids_datos2.retrieve()
 wb_1.of_init(ids_datos1)
-wb_3.of_init(ids_datos1)
+wb_3.of_init(ids_datos2)
 end subroutine
 
 on tab_inicio.create
@@ -99,10 +99,14 @@ ieon_resize.of_fontresize(true,3)
 ieon_resize.of_zoom( true, 3)
 This.Resize( ldec_width, ldc_Height )
 
-
+//para grafico de pendientes 
 ids_datos1 = create datastore
 ids_datos1.dataobject = 'gr_pendientes'
 ids_datos1.settransobject(SQLCA)
+//para grafico mensual 
+ids_datos2 = create datastore
+ids_datos2.dataobject = 'gr_reparados_x_mes'
+ids_datos2.settransobject(SQLCA)
 
 
 of_actualizar_graficos()
@@ -123,10 +127,8 @@ integer x = 2194
 integer y = 392
 integer width = 2057
 integer height = 820
-string is_style = "pie"
 string is_title = ""
 boolean ib_toolbox = false
-boolean ib_legend = false
 boolean ib_preview = false
 boolean ib_auto_sort = false
 boolean ib_sort_asc = false
@@ -157,7 +159,7 @@ integer x = 133
 integer y = 388
 integer width = 2057
 integer height = 820
-string is_style = "horizontalbar"
+string is_style = "pie"
 string is_title = ""
 boolean ib_toolbox = false
 boolean ib_legend = false
