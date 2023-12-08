@@ -152,6 +152,14 @@ type tab_detalles from tab within w_abm_reparaciones_v2
 tabpage_estados tabpage_estados
 tabpage_info tabpage_info
 end type
+type mle_descripcion from multilineedit within w_abm_reparaciones_v2
+end type
+type mle_problema from multilineedit within w_abm_reparaciones_v2
+end type
+type mle_solucion from multilineedit within w_abm_reparaciones_v2
+end type
+type uo_email from uo_envio_email within w_abm_reparaciones_v2
+end type
 end forward
 
 global type w_abm_reparaciones_v2 from w_abm_cyd_base
@@ -160,6 +168,10 @@ integer height = 2840
 gb_repa gb_repa
 gb_comp gb_comp
 tab_detalles tab_detalles
+mle_descripcion mle_descripcion
+mle_problema mle_problema
+mle_solucion mle_solucion
+uo_email uo_email
 end type
 global w_abm_reparaciones_v2 w_abm_reparaciones_v2
 
@@ -183,6 +195,8 @@ public function integer wf_grabar (ref datawindow adw_cab, ref datawindow adw_de
 public subroutine wf_timer ()
 public subroutine wf_calcular_mano_obra ()
 public subroutine wf_insertar_campos ()
+public subroutine wf_mandar_monto ()
+public subroutine wf_mail (integer ai_estado)
 end prototypes
 
 public subroutine wf_get_codigo ();SELECT TOP 1 REPARACIONES_CODIGO
@@ -329,7 +343,7 @@ if dw_cabecera.GetItemString(1, 'desc_prob_descripcion') = '(Nuevo)' then
 	lds_aux.SetTransObject(SQLCA)
 	lds_aux.Reset()
 	lds_aux.InsertRow(0)
-	ls_aux = dw_cabecera.GetItemString(1, 'descripciones_problemas_desc_prob_descripcion')
+	ls_aux = mle_descripcion.text
 	lds_aux.SetItem(1, 'desc_prob_descripcion', ls_aux)
 			
 	lds_aux.AcceptText()
@@ -346,7 +360,7 @@ if dw_cabecera.GetItemNumber(1, 'reparaciones_reparaciones_prolema') = 0 then
 	lds_aux.SetTransObject(SQLCA)
 	lds_aux.Reset()
 	lds_aux.InsertRow(0)
-	lds_aux.SetItem(1, 'problemas_descripcion', dw_cabecera.GetItemString(1, 'problemas_problemas_descripcion'))
+	lds_aux.SetItem(1, 'problemas_descripcion', mle_problema.text)
 			
 	lds_aux.AcceptText()
 			
@@ -369,7 +383,7 @@ if dw_cabecera.GetItemString(1, 'soluciones_descripcion') = '(Nuevo)' then
 	lds_aux.SetTransObject(SQLCA)
 	lds_aux.Reset()
 	lds_aux.InsertRow(0)
-	ls_aux = dw_cabecera.GetItemString(1, 'soluciones_soluciones_descripcion')
+	ls_aux = mle_solucion.text
 	lds_aux.SetItem(1, 'soluciones_descripcion', ls_aux)
 		
 	lds_aux.AcceptText()
@@ -382,16 +396,106 @@ if dw_cabecera.GetItemString(1, 'soluciones_descripcion') = '(Nuevo)' then
 end if 
 end subroutine
 
+public subroutine wf_mandar_monto ();Integer li_rc
+String ls_ReturnJson
+long ll_monto
+string ls_documento, ls_ip, ls_port
+
+HttpClient lnv_HttpClient
+lnv_HttpClient = Create HttpClient
+
+SELECT PARAMETROS_VALOR
+INTO :ls_ip
+FROM PARAMETROS
+WHERE PARAMETROS_CODIGO = 'API_IP'
+commit using sqlca;
+
+SELECT PARAMETROS_VALOR
+INTO :ls_port
+FROM PARAMETROS
+WHERE PARAMETROS_CODIGO = 'API_PORT'
+commit using sqlca;
+
+if trim(ls_ip, true) = '' or  trim(ls_port, true) = '' then 
+	messagebox('Aviso!', 'La dirección ip o el puerto no estan configurados correctamente, debera introducir los datos manualmente.')
+	return
+end if 
+
+ll_monto = dw_cabecera.GetItemNumber(1, 'reparaciones_costo')
+ls_documento = tab_detalles.tabpage_info.dw_cliente.GetItemString(1, 'clientes_documento')
+
+String ls_json = '{"monto":'+string(ll_monto)+', "documento":"'+ls_documento+'"}'
+
+
+lnv_HttpClient.SetRequestHeader("Content-Type", "application/json")
+
+li_rc = lnv_HttpClient.SendRequest("POST", "https://"+ls_ip+":"+ls_port+"/descuento", ls_json)
+
+if li_rc = 1 and lnv_HttpClient.GetResponseStatusCode() = 200 then
+	 lnv_HttpClient.GetResponseBody(ls_ReturnJson)
+else 
+	messagebox('Aviso!', 'La conexión a la caja a fallado, verifique que la dirección ip y el puerto esten configurados correctamente, debera introducir los datos manualmente.')
+ end if
+
+end subroutine
+
+public subroutine wf_mail (integer ai_estado);string ls_nombre, ls_contrasenia, ls_asunto, ls_mensaje, ls_destinatario,ls_destinatario_email, ls_estado
+long ll_cliente
+
+ll_cliente = dw_cabecera.GetItemNumber(1, 'CLIENTES_CODIGO')
+
+SELECT CLIENTES_NOMBRE+', '+ CLIENTES_APELLIDO, CLIENTES_CORREO
+INTO :ls_destinatario, :ls_destinatario_email
+FROM REPARACIONES
+JOIN CLIENTES ON REPARACIONES.CLIENTES_CODIGO = CLIENTES.CLIENTES_CODIGO 
+WHERE REPARACIONES.REPARACIONES_CODIGO = :il_codigo
+commit using sqlca;
+
+SELECT TIPO_CORRE_NOMBRE, TIPO_CORRE_MENSAJE
+INTO :ls_asunto, :ls_mensaje
+FROM TIPOS_CORREOS
+WHERE TIPO_CORRE_CODIGO = 1
+COMMIT USING SQLCA;
+
+SELECT ESTADOS_NOMBRE
+into :ls_estado
+FROM ESTADOS 
+WHERE ESTADOS_CODIGO = :ai_estado
+COMMIT USING SQLCA;
+
+ls_mensaje+=' '+ls_estado
+
+// para perfil de correo 
+ls_nombre = 'Outlook'
+ls_contrasenia = 'Nippon2023*'
+
+//se configura el perfil
+uo_email.set_perfil_correo(ls_nombre, ls_contrasenia)
+// se carga el destinatario 
+uo_email.set_destinatario( ls_destinatario,ls_destinatario_email)
+//se carga el mensaje
+uo_email.set_mensaje(ls_asunto, ls_mensaje)
+//se envia
+uo_email.of_enviar()
+end subroutine
+
 on w_abm_reparaciones_v2.create
 int iCurrent
 call super::create
 this.gb_repa=create gb_repa
 this.gb_comp=create gb_comp
 this.tab_detalles=create tab_detalles
+this.mle_descripcion=create mle_descripcion
+this.mle_problema=create mle_problema
+this.mle_solucion=create mle_solucion
+this.uo_email=create uo_email
 iCurrent=UpperBound(this.Control)
 this.Control[iCurrent+1]=this.gb_repa
 this.Control[iCurrent+2]=this.gb_comp
 this.Control[iCurrent+3]=this.tab_detalles
+this.Control[iCurrent+4]=this.mle_descripcion
+this.Control[iCurrent+5]=this.mle_problema
+this.Control[iCurrent+6]=this.mle_solucion
 end on
 
 on w_abm_reparaciones_v2.destroy
@@ -399,6 +503,10 @@ call super::destroy
 destroy(this.gb_repa)
 destroy(this.gb_comp)
 destroy(this.tab_detalles)
+destroy(this.mle_descripcion)
+destroy(this.mle_problema)
+destroy(this.mle_solucion)
+destroy(this.uo_email)
 end on
 
 event open;//ancestro anulado
@@ -489,6 +597,8 @@ il_codigo = dw_cabecera.GetItemNumber(1, 'reparaciones_codigo')
 
 
 wf_insertar_campos()
+
+dw_cabecera.AcceptText()
 
 			
 // acciones si se esta insertando por primera vez
@@ -665,24 +775,33 @@ ldwC_componentes.Sort()
 
 end event
 
-event dw_cabecera::itemchanged;call super::itemchanged;if data = 'desc_prob_descripcion' then
-	This.SetColumn('descripciones_problemas_desc_prob_descripcion')
-	return
+event dw_cabecera::itemchanged;call super::itemchanged;if dwo.name = 'desc_prob_descripcion' and data = '(Nuevo)' then
+	mle_descripcion.visible = true
+	mle_descripcion.SetFocus()
+	//This.SetColumn('descripciones_problemas_desc_prob_descripcion')
+	//this.SetItem(1, 'desc_prob_descripcion', ' ')
 	
+	return
 end if 
 
 
 // --------------------------------------------
-if data = 'reparaciones_reparaciones_prolema' then
-	This.SetColumn('problemas_problemas_descripcion')
+if dwo.name = 'reparaciones_reparaciones_prolema' and data = '0' then
+	mle_problema.visible = true
+	mle_problema.SetFocus()
+	//this.SetItem(1, 'problemas_problemas_descripcion', '')
+	//This.SetColumn('problemas_problemas_descripcion')
+
 	return
 	
 end if 
 
 
 // --------------------------------------------w
-if data ='soluciones_descripcion' then
-	This.SetColumn('soluciones_soluciones_descripcion')
+if dwo.name = 'soluciones_descripcion' and data = '(Nuevo)' then
+	mle_solucion.visible = true
+	mle_solucion.SetFocus()
+	//This.SetColumn('soluciones_soluciones_descripcion')
 	return
 	
 end if 
@@ -932,7 +1051,7 @@ event ue_clicked(string as_bt);Choose case as_bt
 		pb_d.enabled = false
 		pb_c.enabled = true
 		pb_c_1.enabled = false
-		pb_f.enabled = true
+		pb_e.enabled = true
 //		ln_c.LineColor = il_gray
 //		ln_c_1.LineColor = il_gray
 //		ln_c_2.LineColor = il_gray
@@ -1256,9 +1375,9 @@ ln_bot_2.endY = ln_b_2_exit.endY
 
 // Final por arriba
 
-ln_e_top.beginX = ln_e_bot.beginX
+ln_e_top.beginX = pb_e.X + (pb_e.Width /2)
 ln_e_top.beginY = pb_c_2.Y + (pb_c_2.Height /2)
-ln_e_top.endX = ln_e_bot.beginX
+ln_e_top.endX = ln_e_top.beginX
 ln_e_top.endY = pb_f.Y
 
 ln_c_2_exit.beginX = pb_c_2.X + pb_c_2.Width
@@ -1366,6 +1485,15 @@ if wf_cambiar_estado( 9, 1, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
+dw_cabecera.SetItem(1, 'reparaciones_fin', today())
+dw_cabecera.SetItem(1, 'reparaciones_vencimiento_garantia', RelativeDate( today(), 30))
+
+wf_mandar_monto()
+
+cb_1.post event clicked()
+
+wf_mail(9)
+
 //ln_e.LineColor = il_gray
 //
 //pb_e.enabled = false
@@ -1393,14 +1521,34 @@ vtextalign vtextalign = multiline!
 long backcolor = 12639424
 end type
 
-event clicked;
+event clicked;long ll_problema
+string ls_solucion
+boolean 	lbool_grabar = true
+
+ll_problema = dw_cabecera.GetItemNumber(1, 'reparaciones_reparaciones_prolema')
+ls_solucion = dw_cabecera.GetItemString(1, 'soluciones_descripcion')
+
+if ll_problema = 0 or isNull(ll_problema) then
+	dw_cabecera.Modify("reparaciones_reparaciones_prolema.Background.Mode='0~tIf(getrow()=currentrow(),0,1)'")
+	dw_cabecera.Modify("reparaciones_reparaciones_prolema.Background.Color='0~tIf(isnull(reparaciones_reparaciones_prolema),RGB(255, 179, 179),rgb(255,255,255))'")
+	lbool_grabar = false
+end if 
+
+if trim(ls_solucion, true) = '' or isNull(ls_solucion) then
+	dw_cabecera.Modify("soluciones_descripcion.Background.Mode='0~tIf(getrow()=currentrow(),0,1)'")
+	dw_cabecera.Modify("soluciones_descripcion.Background.Color='0~tIf(isnull(soluciones_descripcion),RGB(255, 179, 179),rgb(255,255,255))'")
+	lbool_grabar = false
+end if 
+
+if not lbool_grabar then return
+
 if wf_cambiar_estado( 8, 1, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
+wf_calcular_mano_obra()
 
-
-
+wf_mail(8)
 
 //ln_a_2_exit.LineColor = il_gray
 //ln_bot_1.LineColor = il_gray
@@ -1466,6 +1614,8 @@ if wf_cambiar_estado( 7, 1, 'en pruebas') <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
+wf_mail(7)
+
 //ln_c.LineColor = il_gray
 //ln_c_1.LineColor = il_gray
 //ln_c_2.LineColor = il_gray
@@ -1498,7 +1648,6 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 boolean enabled = false
 string text = "Enviar a soporte externo"
-boolean originalsize = true
 string picturename = ".\iconos\png\yellowButton.png"
 string disabledname = ".\iconos\png\grayButton.png"
 vtextalign vtextalign = multiline!
@@ -1510,7 +1659,7 @@ if wf_cambiar_estado( 6, 1, 'en soporte externo') <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
-wf_calcular_mano_obra()
+
 
 // il_green il_yellow il_gray il_red
 
@@ -1558,6 +1707,8 @@ event clicked;
 if wf_cambiar_estado( 5, 1, 'pausado') <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
+
+wf_mail(5)
 
 // il_green il_yellow il_gray
 
@@ -1607,6 +1758,8 @@ else
 end if 
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
+
+wf_mail(4)
 
 //ln_c.LineColor = il_green
 //ln_c_1.LineColor = il_yellow
@@ -1668,6 +1821,8 @@ r_current.event ue_select(This.X, This.Y, this.Classname())
 
 wf_calcular_mano_obra()
 
+wf_mail(8)
+
 //ln_b.LineColor = il_gray
 //ln_b_2.LineColor = il_gray
 //
@@ -1705,6 +1860,8 @@ event clicked;
 if wf_cambiar_estado( 3, 1, 'esperando aporbación de presupuesto') <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
+
+wf_mail(3)
 
 //ln_b.LineColor = il_green
 //ln_b_2.LineColor = il_red
@@ -1745,8 +1902,9 @@ if wf_cambiar_estado( 8, 2, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
-
 wf_calcular_mano_obra()
+
+wf_mail(8)
 
 //ln_a.LineColor = il_gray
 //ln_a_2.LineColor = il_gray
@@ -1787,6 +1945,8 @@ event clicked;// cambiar el estado
 if wf_cambiar_estado( 2, 1, This.text) <> 0 then return
 
 r_current.event ue_select(This.X, This.Y, this.Classname())
+
+wf_mail(2)
 
 //ln_a.LineColor = il_green
 //ln_a_2.LineColor = il_red
@@ -2173,7 +2333,7 @@ string facename = "Tahoma"
 long textcolor = 33554432
 long backcolor = 67108864
 string text = "00 Horas"
-alignment alignment = Center!
+alignment alignment = center!
 boolean focusrectangle = false
 end type
 
@@ -2244,4 +2404,71 @@ long textcolor = 33554432
 long backcolor = 67108864
 string text = "Hora"
 end type
+
+type mle_descripcion from multilineedit within w_abm_reparaciones_v2
+boolean visible = false
+integer x = 617
+integer y = 448
+integer width = 2149
+integer height = 236
+integer taborder = 130
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long backcolor = 16777215
+boolean border = false
+end type
+
+type mle_problema from multilineedit within w_abm_reparaciones_v2
+boolean visible = false
+integer x = 617
+integer y = 708
+integer width = 2149
+integer height = 236
+integer taborder = 140
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long backcolor = 16777215
+boolean border = false
+end type
+
+type mle_solucion from multilineedit within w_abm_reparaciones_v2
+boolean visible = false
+integer x = 617
+integer y = 984
+integer width = 2149
+integer height = 236
+integer taborder = 150
+boolean bringtotop = true
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long backcolor = 16777215
+boolean border = false
+end type
+
+type uo_email from uo_envio_email within w_abm_reparaciones_v2 descriptor "pb_nvo" = "true" 
+event create ( )
+event destroy ( )
+end type
+
+on uo_email.create
+call super::create
+end on
+
+on uo_email.destroy
+call super::destroy
+end on
 
