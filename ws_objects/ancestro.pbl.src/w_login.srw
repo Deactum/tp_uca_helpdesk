@@ -54,14 +54,11 @@ public function boolean wf_tiene_rol (integer ai_rol)
 end prototypes
 
 public function boolean wf_tiene_rol (integer ai_rol);long ll_has = -1
-
-
 SELECT ROLES_CODIGO
 INTO :ll_has
 FROM USUARIOS_ROLES
 WHERE USUARIOS_CODIGO = :gs_usu_codigo
 COMMIT USING SQLCA;
-
 return ll_has = ai_rol 
 end function
 
@@ -99,7 +96,6 @@ destroy(this.r_1)
 end on
 
 event open;r_1.fillcolor = rgb(17, 51, 85) 
-
 end event
 
 event closequery;message.longparm = il_return
@@ -143,49 +139,47 @@ string text = "Ingresar"
 end type
 
 event clicked;string ls_user, ls_pass
-
 ls_user = sle_1.text
 ls_pass = sle_2.text
-
 if ls_user = '' then 
 	p_user.visible = true
 	return
 else
 	p_user.visible = false
 end if
-
 if ls_pass = '' then 
 	p_pass.visible = true
 	return
 else
 	p_pass.visible = false
 end if
+SELECT USUARIOS_ACTIVO
+INTO :il_return
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :ls_user
+COMMIT USING SQLCA;
+if il_return = 0 then return
+il_return = 0
 
 SELECT CASE WHEN USUARIOS_CONTRASENA =  HashBytes('SHA2_256', :ls_pass) THEN 0 ELSE 1 END AS OK_PASS
 INTO :il_return
 FROM USUARIOS
 WHERE USUARIOS_CODIGO = :ls_user
 COMMIT USING SQLCA;
-
 if il_return <> 0 then 
 	messagebox('Error de acceso', "Usuario o Password no son válidos, verifique si los ingresó correctamente e intente de nuevo. Si el error persiste consulte con administracion del sistema")
 	return
 end if 
-
 gs_usu_codigo = ls_user
-
 gb_gerente =				wf_tiene_rol(1)
 gb_encargado_tienda =	wf_tiene_rol(2)
 gb_tecnico_supervisor =	wf_tiene_rol(3)
 gb_tecnico = 				wf_tiene_rol(4)
-
 UPDATE USUARIOS
 SET USUARIOS_SESION = 1
 WHERE USUARIOS_CODIGO = :ls_user
 COMMIT USING SQLCA;
-
 close(parent)
-
 end event
 
 type sle_2 from singlelineedit within w_login
@@ -202,7 +196,6 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
-string text = "123"
 boolean border = false
 boolean password = true
 borderstyle borderstyle = stylelowered!
@@ -229,7 +222,6 @@ choose case this.picturename
 		this.picturename = '.\iconos\1x\baseline_visibility_off_black_24dp.png'
 		sle_2.password = true
 end choose
-
 end event
 
 type sle_1 from singlelineedit within w_login
@@ -246,7 +238,6 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
-string text = "GG"
 boolean border = false
 borderstyle borderstyle = stylelowered!
 string placeholder = "Usuario"
