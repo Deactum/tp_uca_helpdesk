@@ -5,13 +5,13 @@ header(height=80 color="536870912" transparency="0" gradient.color="8421504" gra
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=92 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=long update=yes updatewhereclause=yes key=yes identity=yes name=componentes_codigo dbname="componentes.componentes_codigo" )
- column=(type=char(50) update=yes updatewhereclause=yes name=componentes_nombre dbname="componentes.componentes_nombre" )
- column=(type=char(50) update=yes updatewhereclause=yes name=componentes_sk dbname="componentes.componentes_sk" )
- column=(type=long update=yes updatewhereclause=yes name=componentes_cantidad dbname="componentes.componentes_cantidad" )
- column=(type=long update=yes updatewhereclause=yes name=componentes_minimo dbname="componentes.componentes_minimo" )
- column=(type=long update=yes updatewhereclause=yes name=componentes_precio_compra dbname="componentes.componentes_precio_compra" )
- column=(type=long update=yes updatewhereclause=yes name=componentes_precio_venta dbname="componentes.componentes_precio_venta" )
+table(column=(type=long update=yes updatewhereclause=yes key=yes identity=yes name=componentes_codigo dbname="componentes.componentes_codigo" dbalias=".componentes_codigo" )
+ column=(type=char(50) update=yes updatewhereclause=yes name=componentes_nombre dbname="componentes.componentes_nombre" dbalias=".componentes_nombre" )
+ column=(type=char(50) update=yes updatewhereclause=yes name=componentes_sk dbname="componentes.componentes_sk" dbalias=".componentes_sk" )
+ column=(type=long update=yes updatewhereclause=yes name=componentes_cantidad dbname="componentes.componentes_cantidad" dbalias=".componentes_cantidad" )
+ column=(type=long update=yes updatewhereclause=yes name=componentes_minimo dbname="componentes.componentes_minimo" dbalias=".componentes_minimo" )
+ column=(type=long update=yes updatewhereclause=yes name=componentes_precio_compra dbname="componentes.componentes_precio_compra" dbalias=".componentes_precio_compra" )
+ column=(type=long update=yes updatewhereclause=yes name=componentes_precio_venta dbname="componentes.componentes_precio_venta" dbalias=".componentes_precio_venta" )
  retrieve="declare @pagina int = :pagina
 declare @registros int = :registros
 declare @saltar int = @pagina*@registros
@@ -24,7 +24,8 @@ declare @saltar int = @pagina*@registros
          componentes.componentes_precio_compra,   
          componentes.componentes_precio_venta  
     FROM componentes  
-   WHERE componentes.componentes_codigo like :busqueda or componentes.componentes_nombre like :busqueda or componentes.componentes_nombre like :busqueda
+   WHERE componentes.componentes_codigo not in (17, 18) and
+			(componentes.componentes_codigo like :busqueda or componentes.componentes_nombre like :busqueda or componentes.componentes_nombre like :busqueda)
 order by 1 desc
 offset @saltar rows
 fetch next @registros rows only" update="componentes" updatewhere=1 updatekeyinplace=no arguments=(("pagina", number),("registros", number),("busqueda", string)) )
