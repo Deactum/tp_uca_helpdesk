@@ -158,6 +158,8 @@ ll_inserted = ldwC_componentes.InsertRow(0)
 ldwC_componentes.SetItem(ll_inserted, 'componentes_codigo', 0)
 ldwC_componentes.SetItem(ll_inserted, 'componentes_nombre', '(Nuevo)')
 ldwC_componentes.SetSort('componentes_codigo A')
+ldwC_componentes.SetFilter('componentes_codigo<>17 and componentes_codigo<>18')
+ldwC_componentes.Filter()
 ldwC_componentes.AcceptText()
 ldwC_componentes.Sort()
 
