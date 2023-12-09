@@ -225,6 +225,7 @@ try
 	long i
 	LnombreObj = uo_1.get_object(index)
 	if LnombreObj = '' then return
+	if not f_permiso(LnombreObj,gs_usu_codigo,0) then return 
 	Ltitulo = uo_1.get_title(index)
 	wf_reciente(ltitulo,LnombreObj)
 	if not parent.wf_buscar_tab(LnombreObj) then
