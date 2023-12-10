@@ -136,6 +136,7 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 string text = "Ingresar"
+boolean default = true
 end type
 
 event clicked;string ls_user, ls_pass
@@ -182,6 +183,7 @@ UPDATE USUARIOS
 SET USUARIOS_SESION = 1
 WHERE USUARIOS_CODIGO = :ls_user
 COMMIT USING SQLCA;
+cb_1.Default = TRUE
 close(parent)
 end event
 
