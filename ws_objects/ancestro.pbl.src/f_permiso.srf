@@ -1,0 +1,51 @@
+﻿$PBExportHeader$f_permiso.srf
+global type f_permiso from function_object
+end type
+
+forward prototypes
+global function boolean f_permiso (string as_nombre_obj, string as_usuario, integer ai_band)
+end prototypes
+
+global function boolean f_permiso (string as_nombre_obj, string as_usuario, integer ai_band);//valida que un usuario posea permisos sobre una ventana o un tab
+// retorna true si tiene permiso y, false si no, ademas muestra un mensaje de error 
+// se debe poner cero siempre para validar, en caso de poner 1 en ai_band le pone como no autorizado a todo 
+
+long ll_val = 0
+//valida el tab inicio
+if as_nombre_obj = 'tab_inicio' then return true
+
+//si se ingresa 1 se pone como no autrizado para todos, siempre debe ir cero 
+if ai_band = 1 then 
+	messagebox('Control de Acceso', 'Usuario no autorizado para esta operación ', stopsign!)
+	return false 
+end if
+
+//valida el usuario administrador 
+select ROLES_CODIGO
+into :ll_val from USUARIOS_ROLES
+where USUARIOS_CODIGO = :as_usuario;
+if ll_val = 1 then return true
+
+
+//verifica si tiene permiso sobre el programa 
+select count(*)
+into :ll_val
+from USUARIOS u
+join USUARIOS_ROLES ur on u.USUARIOS_CODIGO =  ur.USUARIOS_CODIGO
+join ROLES r on ur.ROLES_CODIGO = r.ROLES_CODIGO
+join PROGRAMAS_ROLES pr on r.ROLES_CODIGO = pr.ROLES_CODIGO
+join PROGRAMAS p on pr.PROGRAMAS_NOMBRE =  p.PROGRAMAS_NOMBRE
+where p.PROGRAMAS_NOMBRE = :as_nombre_obj
+and u.USUARIOS_CODIGO = :as_usuario;
+
+if ll_val > 0 then
+	return true
+else
+	messagebox('Control de Acceso', 'Usuario no autorizado para esta operación ', stopsign!)
+end if
+return false 
+
+
+
+end function
+
