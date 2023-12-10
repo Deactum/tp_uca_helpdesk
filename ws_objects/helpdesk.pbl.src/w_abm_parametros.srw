@@ -7,6 +7,7 @@ end forward
 global type w_abm_parametros from w_abm_base
 integer width = 2130
 integer height = 632
+string title = "Parametros"
 end type
 global w_abm_parametros w_abm_parametros
 

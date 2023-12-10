@@ -7,6 +7,7 @@ end forward
 global type w_abm_componentes from w_abm_base
 integer width = 2171
 integer height = 876
+string title = "Componentes"
 end type
 global w_abm_componentes w_abm_componentes
 

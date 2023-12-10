@@ -165,6 +165,7 @@ end forward
 global type w_abm_reparaciones_v2 from w_abm_cyd_base
 integer width = 5774
 integer height = 2840
+string title = "Reparaciones"
 gb_repa gb_repa
 gb_comp gb_comp
 tab_detalles tab_detalles
@@ -838,7 +839,7 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
 long backcolor = 67108864
-string text = "Componentes"
+string text = "Presupuesto"
 end type
 
 type tab_detalles from tab within w_abm_reparaciones_v2

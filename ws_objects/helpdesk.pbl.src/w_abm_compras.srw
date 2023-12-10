@@ -7,6 +7,7 @@ end forward
 global type w_abm_compras from w_abm_cyd_base
 integer width = 2592
 integer height = 2312
+string title = "Compras"
 end type
 global w_abm_compras w_abm_compras
 
