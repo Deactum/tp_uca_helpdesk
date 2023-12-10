@@ -5,23 +5,48 @@ header(height=144 color="536870912" transparency="0" gradient.color="8421504" gr
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=92 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=char(53) updatewhereclause=yes name=estado dbname="estado" )
+table(column=(type=char(82) updatewhereclause=yes name=estados_nombre dbname="ESTADOS_NOMBRE" )
  column=(type=long updatewhereclause=yes identity=yes name=cantidad dbname="cantidad" )
- retrieve="select (select '1- '+e2.ESTADOS_NOMBRE from ESTADOS e2 where e2.ESTADOS_CODIGO = 1 ) as estado ,isnull(count(*),0) as cantidad from REPARACIONES_ESTADOS re
-join ESTADOS e on re.ESTADOS_CODIGO =  e.ESTADOS_CODIGO
-where re.ESTADOS_CODIGO = 1
+ retrieve="select temp2.ESTADOS_NOMBRE, sum(temp2.cantidad ) as cantidad 
+from (select convert(varchar,temp.ESTADOS_CODIGO) +'- '+ temp.ESTADOS_NOMBRE as estados_nombre ,count(*) as cantidad
+from (SELECT 
+R.REPARACIONES_CODIGO,
+C.CLIENTES_NOMBRE +' '+ C.CLIENTES_APELLIDO AS CLIENTE,
+EQ.EQUIPOS_DESCRIPCION,
+e.ESTADOS_CODIGO,
+E.ESTADOS_NOMBRE,
+MAX(RE.REPA_ESTA_FECHA) as fecha
+FROM REPARACIONES R
+JOIN REPARACIONES_ESTADOS RE ON R.REPARACIONES_CODIGO = RE.REPARACIONES_CODIGO
+JOIN ESTADOS E ON RE.ESTADOS_CODIGO = E.ESTADOS_CODIGO
+JOIN CLIENTES C ON R.CLIENTES_CODIGO = C.CLIENTES_CODIGO
+JOIN EQUIPOS EQ ON R.EQUIPOS_CODIGO = EQ.EQUIPOS_CODIGO
+WHERE ISNULL(R.REPARACIONES_FIN,'1977-01-01') ='1977-01-01'
+AND E.ESTADOS_CODIGO <> 9
+GROUP BY 
+R.REPARACIONES_CODIGO,
+C.CLIENTES_NOMBRE +' '+ C.CLIENTES_APELLIDO,
+EQ.EQUIPOS_DESCRIPCION,
+e.ESTADOS_CODIGO,
+E.ESTADOS_NOMBRE
+HAVING MAX(RE.REPA_ESTA_FECHA) = (SELECT MAX(E2.REPA_ESTA_FECHA) FROM REPARACIONES_ESTADOS E2
+WHERE E2.REPARACIONES_CODIGO = R.REPARACIONES_CODIGO)
+) as temp
+where temp.ESTADOS_CODIGO in(1,2,3)
+group by temp.ESTADOS_NOMBRE,
+temp.ESTADOS_CODIGO
+union 
+SELECT convert(varchar,e2.ESTADOS_CODIGO) +'- '+ E2.ESTADOS_NOMBRE,0 as cantidad FROM ESTADOS E2 WHERE E2.ESTADOS_CODIGO = 1
 union
-select (select '2- '+e2.ESTADOS_NOMBRE from ESTADOS e2 where e2.ESTADOS_CODIGO = 2 ) as estado ,isnull(count(*),0) as cantidad from REPARACIONES_ESTADOS re
-join ESTADOS e on re.ESTADOS_CODIGO =  e.ESTADOS_CODIGO
-where re.ESTADOS_CODIGO = 2
+SELECT convert(varchar,e2.ESTADOS_CODIGO) +'- '+E2.ESTADOS_NOMBRE,0 as cantidad FROM ESTADOS E2 WHERE E2.ESTADOS_CODIGO = 2 
 union
-select (select '3- '+e2.ESTADOS_NOMBRE from ESTADOS e2 where e2.ESTADOS_CODIGO = 3 ) as estado ,isnull(count(*),0) as cantidad from REPARACIONES_ESTADOS re
-join ESTADOS e on re.ESTADOS_CODIGO =  e.ESTADOS_CODIGO
-where re.ESTADOS_CODIGO = 3" )
-text(band=header alignment="2" text="Estado" border="0" color="33554432" x="14" y="8" height="64" width="1536" html.valueishtml="0"  name=estado_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-text(band=header alignment="2" text="Cantidad" border="0" color="33554432" x="1563" y="8" height="64" width="384" html.valueishtml="0"  name=cantidad_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-column(band=detail id=1 alignment="0" tabsequence=32766 border="0" color="33554432" x="14" y="8" height="76" width="1536" format="[general]" html.valueishtml="0"  name=estado visible="1" edit.limit=50 edit.case=any edit.focusrectangle=no edit.autoselect=yes edit.autohscroll=yes  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
-column(band=detail id=2 alignment="1" tabsequence=32766 border="0" color="33554432" x="1563" y="8" height="76" width="384" format="[general]" html.valueishtml="0"  name=cantidad visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=yes edit.autohscroll=yes  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+SELECT convert(varchar,e2.ESTADOS_CODIGO) +'- '+E2.ESTADOS_NOMBRE,0 as cantidad FROM ESTADOS E2 WHERE E2.ESTADOS_CODIGO = 3
+)as temp2
+group by temp2.ESTADOS_NOMBRE" )
+text(band=header alignment="2" text="Cantidad" border="0" color="33554432" x="1147" y="8" height="64" width="384" html.valueishtml="0"  name=cantidad_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+text(band=header alignment="0" text="Estados Nombre" border="0" color="33554432" x="9" y="4" height="64" width="1129" html.valueishtml="0"  name=estados_nombre_t visible="1"  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="2" background.color="1073741824" background.transparency="0" background.gradient.color="0" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="0" background.gradient.focus="0" background.gradient.scale="0" background.gradient.spread="0" tooltip.backcolor="0" tooltip.delay.initial="0" tooltip.delay.visible="0" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="0" tooltip.transparency="0" transparency="0" )
+column(band=detail id=2 alignment="1" tabsequence=32766 border="0" color="33554432" x="1147" y="8" height="76" width="384" format="[general]" html.valueishtml="0"  name=cantidad visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=yes edit.autohscroll=yes  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
+column(band=detail id=1 alignment="0" tabsequence=32766 border="0" color="33554432" x="9" y="0" height="64" width="1129" format="[general]" html.valueishtml="0"  name=estados_nombre visible="1" edit.limit=0 edit.case=any edit.focusrectangle=no edit.autoselect=no  font.face="Tahoma" font.height="-10" font.weight="400"  font.family="2" font.pitch="2" font.charset="0" background.mode="1" background.color="536870912" background.transparency="0" background.gradient.color="8421504" background.gradient.transparency="0" background.gradient.angle="0" background.brushmode="0" background.gradient.repetition.mode="0" background.gradient.repetition.count="0" background.gradient.repetition.length="100" background.gradient.focus="0" background.gradient.scale="100" background.gradient.spread="100" tooltip.backcolor="134217752" tooltip.delay.initial="0" tooltip.delay.visible="32000" tooltip.enabled="0" tooltip.hasclosebutton="0" tooltip.icon="0" tooltip.isbubble="0" tooltip.maxwidth="0" tooltip.textcolor="134217751" tooltip.transparency="0" transparency="0" )
 htmltable(border="1" )
 htmlgen(clientevents="1" clientvalidation="1" clientcomputedfields="1" clientformatting="0" clientscriptable="0" generatejavascript="1" encodeselflinkargs="1" netscapelayers="0" pagingmethod=0 generatedddwframes="1" )
 xhtmlgen() cssgen(sessionspecific="0" )

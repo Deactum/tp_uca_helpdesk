@@ -5,10 +5,24 @@ header(height=144 color="536870912" transparency="0" gradient.color="8421504" gr
 summary(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 footer(height=0 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
 detail(height=92 color="536870912" transparency="0" gradient.color="8421504" gradient.transparency="0" gradient.angle="0" brushmode="0" gradient.repetition.mode="0" gradient.repetition.count="0" gradient.repetition.length="100" gradient.focus="0" gradient.scale="100" gradient.spread="100" )
-table(column=(type=long updatewhereclause=yes identity=yes name=mes dbname="MES" )
+table(column=(type=char(10) updatewhereclause=yes identity=yes name=mes dbname="Mes" )
  column=(type=long updatewhereclause=yes identity=yes name=cantidad dbname="CANTIDAD" )
  retrieve="SELECT 
-MONTH(R.REPARACIONES_FIN) MES,
+case 
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Enero'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Febrero'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Marzo'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Abril'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Mayo'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Junio'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Julio'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Agosto'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Septiembre'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Octubre'
+when MONTH(R.REPARACIONES_FIN) = 1 then 'Noviembre'
+else 'Diciembre'
+end as Mes
+,
 COUNT(*) CANTIDAD
 FROM REPARACIONES R
 JOIN REPARACIONES_ESTADOS RE ON R.REPARACIONES_CODIGO =  R.REPARACIONES_CODIGO
