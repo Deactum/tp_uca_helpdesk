@@ -22,6 +22,7 @@ global type w_principal_base from window
 integer width = 5294
 integer height = 2512
 boolean titlebar = true
+string title = "Nippon America Electronica \ Helpdesk"
 string menuname = "m_menu_invisible"
 boolean controlmenu = true
 boolean minbox = true
