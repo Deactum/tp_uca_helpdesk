@@ -1,0 +1,68 @@
+﻿$PBExportHeader$f_cantidad_componetes.srf
+global type f_cantidad_componetes from function_object
+end type
+
+forward prototypes
+global subroutine f_cantidad_componetes ()
+end prototypes
+
+global subroutine f_cantidad_componetes ();string ls_nombre, ls_contrasenia, ls_asunto, ls_mensaje, ls_destinatario,ls_destinatario_email, ls_estado
+
+datastore lds_componentes
+long ll_counter, ll_cantidad, ll_minimo, ll_componte
+string ls_componentes = ''
+
+lds_componentes.Dataobject = 'dw_list_componentes'
+lds_componentes.SetTransObject(SQLCA)
+lds_componentes.Retrieve()
+
+for ll_counter = 1 to lds_componentes.RowCount()
+	ll_componte = lds_componentes.GetItemNumber(ll_counter, 'componentes_codigo')
+	ll_minimo = lds_componentes.GetItemNumber(ll_counter, 'componentes_minimo')
+	ll_cantidad = lds_componentes.GetItemNumber(ll_counter, 'componentes_cantidad')
+	
+	if ll_componte <> 18 and ll_componte <> 17 then
+		if ll_cantidad <= ll_minimo then
+			ls_componentes+= string(ll_componte)+', '
+		end if 
+	end if 
+	
+next 
+
+if ls_componentes <> '' then
+	uo_envio_email uo_email
+	uo_email = Create uo_envio_email
+	
+	ls_destinatario = 'Encargado de Tienda'
+
+	Select parametros_valor
+	into :ls_destinatario_email
+	from parametros
+	where parametros_codigo = 'MAIL_STOCK'
+	commit using sqlca;
+	
+	SELECT TIPO_CORRE_NOMBRE, TIPO_CORRE_MENSAJE
+	INTO :ls_asunto, :ls_mensaje
+	FROM TIPOS_CORREOS
+	WHERE TIPO_CORRE_CODIGO = 5
+	COMMIT USING SQLCA;
+	
+	ls_mensaje+=': '+ls_componentes
+
+	// para perfil de correo 
+	ls_nombre = 'Outlook'
+	ls_contrasenia = 'Nippon2023*'
+	
+	//se configura el perfil
+	uo_email.set_perfil_correo(ls_nombre, ls_contrasenia)
+	// se carga el destinatario 
+	uo_email.set_destinatario( ls_destinatario,ls_destinatario_email)
+	//se carga el mensaje
+	uo_email.set_mensaje(ls_asunto, ls_mensaje)
+	//se envia
+	uo_email.of_enviar()
+	
+	
+end if 
+end subroutine
+
