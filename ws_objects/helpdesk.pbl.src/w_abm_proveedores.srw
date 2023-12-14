@@ -7,6 +7,7 @@ end forward
 global type w_abm_proveedores from w_abm_base
 integer width = 1742
 integer height = 788
+string title = "Proveedores"
 end type
 global w_abm_proveedores w_abm_proveedores
 

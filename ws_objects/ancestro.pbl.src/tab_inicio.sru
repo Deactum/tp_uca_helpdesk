@@ -18,7 +18,7 @@ end forward
 
 global type tab_inicio from uo_tab
 integer width = 4279
-integer height = 2252
+integer height = 2272
 string text = "Inicio"
 string picturename = ".\iconos\1x\baseline_home_black_18dp.png"
 event ue_actualizar ( )
@@ -37,6 +37,7 @@ eon_appeon_resize  ieon_resize
 datastore ids_datos1,ids_datos2
 
 end variables
+
 forward prototypes
 public subroutine of_actualizar_graficos ()
 end prototypes
@@ -48,6 +49,7 @@ public subroutine of_actualizar_graficos ();ids_datos1.retrieve()
 ids_datos2.retrieve()
 wb_1.of_init(ids_datos1)
 wb_3.of_init(ids_datos2)
+dw_1.retrieve( )
 end subroutine
 
 on tab_inicio.create
@@ -127,8 +129,10 @@ integer x = 2194
 integer y = 392
 integer width = 2057
 integer height = 820
-string is_title = ""
+string is_style = "area"
+string is_title = "Ventas Mensuales"
 boolean ib_toolbox = false
+boolean ib_legend = false
 boolean ib_preview = false
 boolean ib_auto_sort = false
 boolean ib_sort_asc = false
@@ -152,6 +156,8 @@ integer width = 4119
 integer height = 968
 integer taborder = 20
 string dataobject = "dw_dsb_estados_rep"
+boolean vscrollbar = true
+boolean livescroll = false
 end type
 
 type wb_1 from n_webbrowser within tab_inicio

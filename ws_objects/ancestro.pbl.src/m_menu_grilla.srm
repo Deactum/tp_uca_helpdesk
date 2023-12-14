@@ -116,7 +116,7 @@ on m_0.destroy
 call super::destroy
 end on
 
-event clicked;parent.triggerevent('ue_nuevo')
+event clicked;g_object.triggerevent('ue_nuevo')
 end event
 
 type m_editar from menu within m_principal
@@ -145,6 +145,9 @@ end on
 on m_editar.destroy
 call super::destroy
 end on
+
+event clicked;g_object.triggerevent('ue_editar')
+end event
 
 type m_actualizar from menu within m_principal
 end type

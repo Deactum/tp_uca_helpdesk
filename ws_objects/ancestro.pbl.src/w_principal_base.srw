@@ -22,6 +22,7 @@ global type w_principal_base from window
 integer width = 5294
 integer height = 2512
 boolean titlebar = true
+string title = "Nippon America Electronica \ Helpdesk"
 string menuname = "m_menu_invisible"
 boolean controlmenu = true
 boolean minbox = true
@@ -147,7 +148,7 @@ timer(60)
 ls_usuario = sqlca.userid
 
 uo_barra.st_1.text = 'Usuario: '
-uo_barra.st_2.text = gs_usuario
+uo_barra.st_2.text = gs_usu_codigo
 end event
 
 event timer;tab_principal.Control[1].triggerevent('ue_actualizar')
@@ -225,6 +226,7 @@ try
 	long i
 	LnombreObj = uo_1.get_object(index)
 	if LnombreObj = '' then return
+	if not f_permiso(LnombreObj,gs_usu_codigo,0) then return 
 	Ltitulo = uo_1.get_title(index)
 	wf_reciente(ltitulo,LnombreObj)
 	if not parent.wf_buscar_tab(LnombreObj) then

@@ -13,6 +13,7 @@ end forward
 global type w_abm_usuarios from w_abm_base
 integer width = 2510
 integer height = 956
+string title = "Usuarios"
 cb_3 cb_3
 p_imagen p_imagen
 cb_imagen cb_imagen
