@@ -64,6 +64,10 @@ string title = "Reparaciones"
 string dataobject = "dw_list_reparaciones"
 end type
 
+event dw_datos::constructor;call super::constructor;This.SetFilter("estado<>'Finalizado'")
+THis.Filter()
+end event
+
 type st_titulo from uo_grilla_base`st_titulo within tab_reparaciones
 end type
 
