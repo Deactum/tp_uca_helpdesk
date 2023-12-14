@@ -639,6 +639,7 @@ WHERE REPARACIONES_CODIGO = :il_codigo
 ORDER BY REPA_ESTA_FECHA DESC
 COMMIT USING SQLCA;
 
+
 if ll_estado = 9 then 
 	tab_detalles.tabpage_estados.dw_estados.retrieve(il_codigo)
 	tab_detalles.tabpage_estados.dw_estados.visible = true
@@ -682,6 +683,8 @@ wf_insertar_campos()
 dw_cabecera.AcceptText()
 
 f_cantidad_componetes ()
+
+if f_validacion(dw_cabecera) = 1 then return
 
 // acciones si se esta insertando por primera vez
 
@@ -1626,7 +1629,7 @@ if trim(ls_solucion, true) = '' or isNull(ls_solucion) then
 	dw_cabecera.Modify("soluciones_descripcion.Background.Color='0~tIf(isnull(soluciones_descripcion),RGB(255, 179, 179),rgb(255,255,255))'")
 	lbool_grabar = false
 	if len(ls_mensaje) > 14 then ls_mensaje += ','
-	ls_mensaje= ' solución'
+	ls_mensaje += ' solución'
 end if 
 
 if not lbool_grabar then 
@@ -2365,20 +2368,43 @@ if dwo.name = 'clientes_codigo' then
 end if 
 end event
 
-event buttonclicked;long ll_estado
+event buttonclicked;long ll_estado, ll_codigo 
+DatawindowChild ldwC_proveedores
 
-if dwo.name <> 'b_correo' then return
 
-SELECT TOP 1 ESTADOS_CODIGO
-into :ll_estado
-FROM REPARACIONES_ESTADOS
-WHERE REPARACIONES_CODIGO = :il_codigo
-ORDER BY REPA_ESTA_FECHA DESC
-COMMIT USING SQLCA;
+if dwo.name = 'b_1' then 
 
-if ll_estado = 6 then return
+	ll_codigo = this.GetItemNumber(1,'clientes_codigo')
+	
+	// se refresca la dddw para que aparezca el proveedor
+	this.GetChild( 'clientes_codigo', ldwC_proveedores)
+	ldwC_proveedores.SetTransObject(SQLCA)
+	
+	if ldwC_proveedores.Retrieve() < 0 then
+		ROLLBACK USING SQLCA;
+		return
+	end if
+	COMMIT USING SQLCA;
+	
+	dw_cabecera.SetItem(1, 'clientes_codigo', ll_codigo)
+	this.enabled = true
 
-wf_mail(ll_estado)
+	
+end if 
+
+if dwo.name = 'b_correo' then 
+
+	SELECT TOP 1 ESTADOS_CODIGO
+	into :ll_estado
+	FROM REPARACIONES_ESTADOS
+	WHERE REPARACIONES_CODIGO = :il_codigo
+	ORDER BY REPA_ESTA_FECHA DESC
+	COMMIT USING SQLCA;
+	
+	if ll_estado = 6 then return
+	
+	wf_mail(ll_estado)
+end if
 end event
 
 type dw_equipo from datawindow within tabpage_info
@@ -2409,6 +2435,28 @@ event itemchanged;if dwo.name = 'equipos_codigo' then
 	wf_refresh_dddw('equipos_codigo', long(data))
 	
 end if 
+end event
+
+event buttonclicked;long ll_codigo
+DatawindowChild ldwC_proveedores
+
+if dwo.name <> 'b_guardar' then return
+
+ll_codigo = this.GetItemNumber(1,'equipos_codigo')
+
+// se refresca la dddw para que aparezca el proveedor
+this.GetChild( 'equipos_codigo', ldwC_proveedores)
+ldwC_proveedores.SetTransObject(SQLCA)
+
+if ldwC_proveedores.Retrieve() < 0 then
+	ROLLBACK USING SQLCA;
+	return
+end if
+COMMIT USING SQLCA;
+
+dw_cabecera.SetItem(1, 'equipos_codigo', ll_codigo)
+this.enabled = true
+
 end event
 
 type st_hora from statictext within tabpage_info
