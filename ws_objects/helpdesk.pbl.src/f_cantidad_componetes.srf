@@ -13,7 +13,7 @@ long ll_counter, ll_cantidad, ll_minimo, ll_componte
 string ls_componentes = ''
 
 lds_componentes = Create datastore
-lds_componentes.Dataobject = 'dw_list_componentes'
+lds_componentes.Dataobject = 'dw_ds_componentes_list'
 lds_componentes.SetTransObject(SQLCA)
 lds_componentes.Retrieve()
 
