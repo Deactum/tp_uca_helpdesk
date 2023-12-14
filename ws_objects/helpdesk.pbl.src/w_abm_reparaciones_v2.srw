@@ -198,13 +198,17 @@ public subroutine wf_calcular_mano_obra ()
 public subroutine wf_insertar_campos ()
 public subroutine wf_mandar_monto ()
 public subroutine wf_mail (integer ai_estado)
+public subroutine wf_enviar_presupuesto ()
+public subroutine wf_enviar_encuesta ()
 end prototypes
 
-public subroutine wf_get_codigo ();SELECT TOP 1 REPARACIONES_CODIGO
+public subroutine wf_get_codigo ();SELECT TOP 1 IsNull(REPARACIONES_CODIGO, 0)
 INTO :il_codigo
 FROM REPARACIONES
 ORDER BY REPARACIONES_CODIGO DESC
 COMMIT USING SQLCA;
+
+if isNull(il_codigo) then il_codigo = 0
 
 il_codigo += 1
 end subroutine
@@ -480,6 +484,83 @@ uo_email.set_mensaje(ls_asunto, ls_mensaje)
 uo_email.of_enviar()
 end subroutine
 
+public subroutine wf_enviar_presupuesto ();string ls_nombre, ls_contrasenia, ls_asunto, ls_mensaje, ls_destinatario,ls_destinatario_email, ls_estado
+long ll_cliente, ll_monto
+
+ll_cliente = dw_cabecera.GetItemNumber(1, 'CLIENTES_CODIGO')
+
+SELECT CLIENTES_NOMBRE+', '+ CLIENTES_APELLIDO, CLIENTES_CORREO, REPARACIONES_COSTO
+INTO :ls_destinatario, :ls_destinatario_email, :ll_monto
+FROM REPARACIONES
+JOIN CLIENTES ON REPARACIONES.CLIENTES_CODIGO = CLIENTES.CLIENTES_CODIGO 
+WHERE REPARACIONES.REPARACIONES_CODIGO = :il_codigo
+commit using sqlca;
+
+SELECT TIPO_CORRE_NOMBRE, TIPO_CORRE_MENSAJE
+INTO :ls_asunto, :ls_mensaje
+FROM TIPOS_CORREOS
+WHERE TIPO_CORRE_CODIGO = 5
+COMMIT USING SQLCA;
+
+
+ls_mensaje+=': '+string(ll_monto, '###,###,###,###')
+
+// para perfil de correo 
+ls_nombre = 'Outlook'
+ls_contrasenia = 'Nippon2023*'
+
+//se configura el perfil
+uo_email.set_perfil_correo(ls_nombre, ls_contrasenia)
+// se carga el destinatario 
+uo_email.set_destinatario( ls_destinatario,ls_destinatario_email)
+//se carga el mensaje
+uo_email.set_mensaje(ls_asunto, ls_mensaje)
+//se envia
+uo_email.of_enviar()
+end subroutine
+
+public subroutine wf_enviar_encuesta ();string ls_nombre, ls_contrasenia, ls_asunto, ls_mensaje, ls_destinatario,ls_destinatario_email, ls_estado
+long ll_cliente
+string ls_link
+
+ll_cliente = dw_cabecera.GetItemNumber(1, 'CLIENTES_CODIGO')
+
+SELECT CLIENTES_NOMBRE+', '+ CLIENTES_APELLIDO 
+INTO :ls_destinatario, :ls_destinatario_email
+FROM REPARACIONES
+JOIN CLIENTES ON REPARACIONES.CLIENTES_CODIGO = CLIENTES.CLIENTES_CODIGO 
+WHERE REPARACIONES.REPARACIONES_CODIGO = :il_codigo
+commit using sqlca;
+
+SELECT TIPO_CORRE_NOMBRE, TIPO_CORRE_MENSAJE
+INTO :ls_asunto, :ls_mensaje
+FROM TIPOS_CORREOS
+WHERE TIPO_CORRE_CODIGO = 6
+COMMIT USING SQLCA;
+
+SELECT PARAMETROS_VALOR
+INTO :ls_link
+FROM PARAMETROS
+WHERE PARAMETROS_CODIGO = 'LINK_FORMS'
+commit using sqlca;
+
+
+ls_mensaje+=': '+ls_link
+
+// para perfil de correo 
+ls_nombre = 'Outlook'
+ls_contrasenia = 'Nippon2023*'
+
+//se configura el perfil
+uo_email.set_perfil_correo(ls_nombre, ls_contrasenia)
+// se carga el destinatario 
+uo_email.set_destinatario( ls_destinatario,ls_destinatario_email)
+//se carga el mensaje
+uo_email.set_mensaje(ls_asunto, ls_mensaje)
+//se envia
+uo_email.of_enviar()
+end subroutine
+
 on w_abm_reparaciones_v2.create
 int iCurrent
 call super::create
@@ -596,12 +677,12 @@ long ll_precio
 
 il_codigo = dw_cabecera.GetItemNumber(1, 'reparaciones_codigo')
 
-
 wf_insertar_campos()
 
 dw_cabecera.AcceptText()
 
-			
+f_cantidad_componetes ()
+
 // acciones si se esta insertando por primera vez
 
 if ibool_insert then 
@@ -648,7 +729,7 @@ if wf_grabar(dw_cabecera,dw_detalle) <> -1 then
 	
 	if ibool_insert then wf_cambiar_estado(1, 1, '')
 	
-	cb_2.event clicked()
+	//cb_2.event clicked()
 end if
 end event
 
@@ -673,7 +754,7 @@ if ldwC_componentes.Retrieve() < 0 then
 end if
 COMMIT USING SQLCA;
 
-ldwC_componentes.SetFilter('componentes_precio_venta>0')
+ldwC_componentes.SetFilter('componentes_precio_venta>0 and componentes_codigo<>17 and componentes_codigo<>18')
 ldwC_componentes.Filter()
 
 
@@ -1495,6 +1576,8 @@ cb_1.post event clicked()
 
 wf_mail(9)
 
+wf_enviar_encuesta()
+
 //ln_e.LineColor = il_gray
 //
 //pb_e.enabled = false
@@ -1523,8 +1606,10 @@ long backcolor = 12639424
 end type
 
 event clicked;long ll_problema
-string ls_solucion
+string ls_solucion, ls_mensaje
 boolean 	lbool_grabar = true
+
+ls_mensaje = 'Debe completar'
 
 ll_problema = dw_cabecera.GetItemNumber(1, 'reparaciones_reparaciones_prolema')
 ls_solucion = dw_cabecera.GetItemString(1, 'soluciones_descripcion')
@@ -1533,15 +1618,21 @@ if ll_problema = 0 or isNull(ll_problema) then
 	dw_cabecera.Modify("reparaciones_reparaciones_prolema.Background.Mode='0~tIf(getrow()=currentrow(),0,1)'")
 	dw_cabecera.Modify("reparaciones_reparaciones_prolema.Background.Color='0~tIf(isnull(reparaciones_reparaciones_prolema),RGB(255, 179, 179),rgb(255,255,255))'")
 	lbool_grabar = false
+	ls_mensaje += ' descripción del problema'
 end if 
 
 if trim(ls_solucion, true) = '' or isNull(ls_solucion) then
 	dw_cabecera.Modify("soluciones_descripcion.Background.Mode='0~tIf(getrow()=currentrow(),0,1)'")
 	dw_cabecera.Modify("soluciones_descripcion.Background.Color='0~tIf(isnull(soluciones_descripcion),RGB(255, 179, 179),rgb(255,255,255))'")
 	lbool_grabar = false
+	if len(ls_mensaje) > 14 then ls_mensaje += ','
+	ls_mensaje= ' solución'
 end if 
 
-if not lbool_grabar then return
+if not lbool_grabar then 
+	messagebox('Aviso!', ls_mensaje)
+	return
+end if 
 
 if wf_cambiar_estado( 8, 1, This.text) <> 0 then return
 
@@ -1863,6 +1954,8 @@ if wf_cambiar_estado( 3, 1, 'esperando aporbación de presupuesto') <> 0 then re
 r_current.event ue_select(This.X, This.Y, this.Classname())
 
 wf_mail(3)
+
+wf_enviar_presupuesto()
 
 //ln_b.LineColor = il_green
 //ln_b_2.LineColor = il_red
@@ -2272,6 +2365,22 @@ if dwo.name = 'clientes_codigo' then
 end if 
 end event
 
+event buttonclicked;long ll_estado
+
+if dwo.name <> 'b_correo' then return
+
+SELECT TOP 1 ESTADOS_CODIGO
+into :ll_estado
+FROM REPARACIONES_ESTADOS
+WHERE REPARACIONES_CODIGO = :il_codigo
+ORDER BY REPA_ESTA_FECHA DESC
+COMMIT USING SQLCA;
+
+if ll_estado = 6 then return
+
+wf_mail(ll_estado)
+end event
+
 type dw_equipo from datawindow within tabpage_info
 integer x = 114
 integer y = 132
@@ -2408,9 +2517,9 @@ end type
 
 type mle_descripcion from multilineedit within w_abm_reparaciones_v2
 boolean visible = false
-integer x = 617
-integer y = 448
-integer width = 2149
+integer x = 855
+integer y = 460
+integer width = 1865
 integer height = 236
 integer taborder = 130
 boolean bringtotop = true
@@ -2426,9 +2535,9 @@ end type
 
 type mle_problema from multilineedit within w_abm_reparaciones_v2
 boolean visible = false
-integer x = 617
-integer y = 708
-integer width = 2149
+integer x = 855
+integer y = 724
+integer width = 1865
 integer height = 236
 integer taborder = 140
 boolean bringtotop = true
@@ -2444,9 +2553,9 @@ end type
 
 type mle_solucion from multilineedit within w_abm_reparaciones_v2
 boolean visible = false
-integer x = 617
-integer y = 984
-integer width = 2149
+integer x = 855
+integer y = 996
+integer width = 1865
 integer height = 236
 integer taborder = 150
 boolean bringtotop = true
