@@ -165,6 +165,16 @@ if il_return = 0 then
 end if 
 il_return = 0
 
+SELECT COUNT(*)
+INTO :il_return
+FROM USUARIOS
+WHERE USUARIOS_CODIGO = :ls_user
+COMMIT USING SQLCA;
+if il_return < 1 then 
+	messagebox('Error de acceso', "Usuario o Password no son válidos, verifique si los ingresó correctamente e intente de nuevo. Si el error persiste consulte con administracion del sistema")
+	return
+end if 
+
 SELECT CASE WHEN USUARIOS_CONTRASENA =  HashBytes('SHA2_256', :ls_pass) THEN 0 ELSE 1 END AS OK_PASS
 INTO :il_return
 FROM USUARIOS
