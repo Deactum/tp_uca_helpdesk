@@ -79,7 +79,7 @@ integer width = 219
 integer height = 192
 integer transparency = 40
 boolean originalsize = true
-string picturename = "D:\Archivos\UCA\ingenieria del software\DEV\iconos\1x\baseline_logout_black_48dp.png"
+string picturename = ".\iconos\1x\baseline_logout_black_48dp.png"
 borderstyle borderstyle = styleraised!
 string powertiptext = "Salir"
 end type
