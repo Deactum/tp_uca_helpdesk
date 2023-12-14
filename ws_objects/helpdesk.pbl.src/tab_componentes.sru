@@ -57,7 +57,7 @@ integer width = 219
 integer height = 192
 boolean bringtotop = true
 integer transparency = 40
-string picturename = "C:\Users\PC\Documents\GitHub\tp_uca_helpdesk\iconos\1x\baseline_print_black_48dp.png"
+string picturename = ".\iconos\1x\baseline_print_black_48dp.png"
 string powertiptext = "Imprimir"
 end type
 

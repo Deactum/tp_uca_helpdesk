@@ -75,7 +75,7 @@ st_usuario.text = ls_apellido + ', ' + ls_nombre
 of_set_menu(0,'Inicio','tab_inicio','baseline_home_white_48dp.png') 
 ll_padre = of_set_menu(0,'Reparaciones','baseline_construction_white_48dp.png') //nodo padre
 	of_set_menu(ll_padre,'Reparaciones','tab_reparaciones','baseline_construction_white_48dp.png')
-	of_set_menu(ll_padre,'Historial','tab_historial','baseline_construction_white_48dp.png')
+	of_set_menu(ll_padre,'Historial','tab_historial','baseline_schedule_white_48dp.png')
 ll_padre = of_set_menu(0,'Depósito','baseline_inventory_white_48dp.png')
 	of_set_menu(ll_padre,'Ajustes','tab_ajustes','baseline_task_alt_white_48dp.png')
 	of_set_menu(ll_padre,'Componentes', 'tab_componentes', 'baseline_wysiwyg_white_48dp.png')
