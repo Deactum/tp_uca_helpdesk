@@ -8,7 +8,7 @@ detail(height=612 color="536870912" transparency="0" gradient.color="8421504" gr
 table(column=(type=char(30) update=yes updatewhereclause=yes key=yes name=usuarios_codigo dbname="usuarios.usuarios_codigo" )
  column=(type=char(50) update=yes updatewhereclause=yes name=usuarios_nombre dbname="usuarios.usuarios_nombre" )
  column=(type=char(50) update=yes updatewhereclause=yes name=usuarios_apellido dbname="usuarios.usuarios_apellido" )
- column=(type=char(50) update=yes updatewhereclause=yes name=usuarios_contrasena dbname="usuarios.usuarios_contrasena" initial="123" )
+ column=(type=char(50) update=yes updatewhereclause=yes name=usuarios_contrasena dbname="usuarios.usuarios_contrasena" )
  column=(type=number updatewhereclause=yes name=usuarios_sesion dbname="usuarios.usuarios_sesion" initial="0" values="Activa	-1/Inactiva	0/" )
  column=(type=number update=yes updatewhereclause=yes name=usuarios_activo dbname="usuarios.usuarios_activo" initial="1" )
  column=(type=long updatewhereclause=yes name=usuarios_roles_roles_codigo dbname="usuarios_roles.roles_codigo" )
