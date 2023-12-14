@@ -54,6 +54,8 @@ string ls_obs
 long ll_cantidad, ll_comp
 boolean lbool_grabar = true
 
+f_cantidad_componetes ()
+
 ls_obs = dw_datos.getitemstring(1, 'ajustes_observacion')
 ll_cantidad = dw_datos.getitemNumber(1, 'ajustes_cantidad')
 ll_comp = dw_datos.getitemNumber(1, 'componentes_codigo')
