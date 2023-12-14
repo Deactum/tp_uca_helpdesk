@@ -729,7 +729,7 @@ if wf_grabar(dw_cabecera,dw_detalle) <> -1 then
 	
 	if ibool_insert then wf_cambiar_estado(1, 1, '')
 	
-	//cb_2.event clicked()
+	cb_2.event clicked()
 end if
 end event
 
@@ -754,7 +754,7 @@ if ldwC_componentes.Retrieve() < 0 then
 end if
 COMMIT USING SQLCA;
 
-ldwC_componentes.SetFilter('componentes_precio_venta>0 and componentes_codigo<>17 and componentes_codigo<>18')
+ldwC_componentes.SetFilter('componentes_precio_venta>0')
 ldwC_componentes.Filter()
 
 
