@@ -2565,10 +2565,10 @@ end type
 
 type mle_descripcion from multilineedit within w_abm_reparaciones_v2
 boolean visible = false
-integer x = 855
-integer y = 460
-integer width = 1865
-integer height = 236
+integer x = 850
+integer y = 456
+integer width = 1966
+integer height = 248
 integer taborder = 130
 boolean bringtotop = true
 integer textsize = -10
@@ -2578,15 +2578,14 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long backcolor = 16777215
-boolean border = false
 end type
 
 type mle_problema from multilineedit within w_abm_reparaciones_v2
 boolean visible = false
-integer x = 855
+integer x = 850
 integer y = 724
-integer width = 1865
-integer height = 236
+integer width = 1966
+integer height = 248
 integer taborder = 140
 boolean bringtotop = true
 integer textsize = -10
@@ -2596,15 +2595,14 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long backcolor = 16777215
-boolean border = false
 end type
 
 type mle_solucion from multilineedit within w_abm_reparaciones_v2
 boolean visible = false
-integer x = 855
-integer y = 996
-integer width = 1865
-integer height = 236
+integer x = 846
+integer y = 992
+integer width = 1975
+integer height = 248
 integer taborder = 150
 boolean bringtotop = true
 integer textsize = -10
@@ -2614,7 +2612,6 @@ fontpitch fontpitch = variable!
 fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long backcolor = 16777215
-boolean border = false
 end type
 
 type uo_email from uo_envio_email within w_abm_reparaciones_v2 descriptor "pb_nvo" = "true" 
