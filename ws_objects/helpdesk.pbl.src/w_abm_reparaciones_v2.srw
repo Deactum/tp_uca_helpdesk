@@ -678,8 +678,14 @@ string ls_nombre
 long ll_cantidad
 long ll_precio
 
-if isNull(dw_cabecera.GetItemNumber(1, 'equipos_codigo')) then return
-if isNull(dw_cabecera.GetItemNumber(1, 'clientes_codigo')) then return
+if isNull(dw_cabecera.GetItemNumber(1, 'equipos_codigo')) then 
+	messagebox('Aviso!', 'Falta introducir el equipo')
+	return
+end if
+if isNull(dw_cabecera.GetItemNumber(1, 'clientes_codigo')) then 
+	messagebox('Aviso!', 'Falta introducir el cliente')
+	return
+end if
 // ################################################
 if f_validacion(dw_cabecera) = 1 then return
 
