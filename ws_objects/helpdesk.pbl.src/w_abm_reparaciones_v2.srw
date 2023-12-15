@@ -678,9 +678,8 @@ string ls_nombre
 long ll_cantidad
 long ll_precio
 
-if dw_cabecera.GetItemString(1, 'equipos_codigo') = '' then return
-if dw_cabecera.GetItemString(1, 'clientes_codigo') = '' then return
-
+if isNull(dw_cabecera.GetItemNumber(1, 'equipos_codigo')) then return
+if isNull(dw_cabecera.GetItemNumber(1, 'clientes_codigo')) then return
 // ################################################
 if f_validacion(dw_cabecera) = 1 then return
 
@@ -707,8 +706,6 @@ if ll_aux_2 > 0 then dw_cabecera.SetItem(1, 'SOLUCIONES_DESCRIPCION', ls_aux)
 // ################################################
 
 il_codigo = dw_cabecera.GetItemNumber(1, 'reparaciones_codigo')
-
-
 
 wf_insertar_campos()
 
