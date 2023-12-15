@@ -15,7 +15,7 @@ table(column=(type=long update=yes updatewhereclause=yes key=yes name=reparacion
  column=(type=datetime update=yes updatewhereclause=yes name=reparaciones_fin dbname="reparaciones.reparaciones_fin" )
  column=(type=long update=yes updatewhereclause=yes name=reparaciones_costo dbname="reparaciones.reparaciones_costo" initial="50000" )
  column=(type=datetime update=yes updatewhereclause=yes name=reparaciones_vencimiento_garantia dbname="reparaciones.reparaciones_vencimiento_garantia" )
- column=(type=number update=yes updatewhereclause=yes name=reparaciones_urgente dbname="reparaciones.reparaciones_urgente" values="	-1/	0" )
+ column=(type=number update=yes updatewhereclause=yes name=reparaciones_urgente dbname="reparaciones.reparaciones_urgente" initial="0" values="	-1/	0" )
  column=(type=char(250) updatewhereclause=yes name=descripciones_problemas_desc_prob_descripcion dbname="descripciones_problemas.desc_prob_descripcion" )
  column=(type=char(250) updatewhereclause=yes name=soluciones_soluciones_descripcion dbname="soluciones.soluciones_descripcion" )
  column=(type=long update=yes updatewhereclause=yes name=reparaciones_reparaciones_prolema dbname="reparaciones.reparaciones_prolema" )
