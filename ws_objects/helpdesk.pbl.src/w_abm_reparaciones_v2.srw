@@ -670,21 +670,51 @@ event cb_1::clicked;// ancestro anulado
 long ll_counter, ll_aux, ll_costo_total
 long ll_inserted
 datastore lds_aux
+string ls_aux
+long ll_aux_2
 
 long ll_codigo
 string ls_nombre
 long ll_cantidad
 long ll_precio
 
+if dw_cabecera.GetItemString(1, 'equipos_codigo') = '' then return
+if dw_cabecera.GetItemString(1, 'clientes_codigo') = '' then return
+
+// ################################################
+if f_validacion(dw_cabecera) = 1 then return
+
+ls_aux = mle_descripcion.text
+
+SELECT COUNT(*)
+INTO :ll_aux_2
+FROM DESCRIPCIONES_PROBLEMAS
+WHERE DESC_PROB_DESCRIPCION = :ls_aux
+COMMIT USING SQLCA;
+
+if ll_aux_2 > 0 then dw_cabecera.SetItem(1, 'desc_prob_descripcion', ls_aux)
+
+ls_aux = mle_solucion.text
+
+SELECT COUNT(*)
+INTO :ll_aux_2
+FROM SOLUCIONES
+WHERE SOLUCIONES_DESCRIPCION = :ls_aux
+COMMIT USING SQLCA;
+
+if ll_aux_2 > 0 then dw_cabecera.SetItem(1, 'SOLUCIONES_DESCRIPCION', ls_aux)
+
+// ################################################
+
 il_codigo = dw_cabecera.GetItemNumber(1, 'reparaciones_codigo')
+
+
 
 wf_insertar_campos()
 
 dw_cabecera.AcceptText()
 
 f_cantidad_componetes ()
-
-if f_validacion(dw_cabecera) = 1 then return
 
 // acciones si se esta insertando por primera vez
 
